@@ -11,3 +11,11 @@ $ nodemon --inspect index.js
 Then open chrome and go to: chrome://inspect
 
 then click "Open dedicated DevTools for Node"
+
+
+# Rust Version
+
+open a Windows Subsystem for Linux
+
+$ sudo apt-get install pkg-config
+$ sudo apt-get install openssl
