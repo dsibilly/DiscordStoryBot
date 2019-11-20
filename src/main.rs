@@ -5,14 +5,15 @@ use discord::model::Event;
 use discord::model::Message;
 use discord::model::MessageId;
 use discord::model::Reaction;
+use discord::model::ReactionEmoji;
+use discord::Connection;
 use discord::Discord;
 
 use color_backtrace;
 
-#[derive(Default)]
 struct Game {
-    channel_id: Option<ChannelId>,
-    most_recent_message_id: Option<MessageId>,
+    channel_id: ChannelId,
+    most_recent_message_id: MessageId,
 }
 
 fn main() {
@@ -28,7 +29,11 @@ fn main() {
 
     println!("Ready.");
 
-    let mut game = Game::default();
+    let mut game: Game = wait_for_game_start(&mut connection, &discord);
+
+    println!("Game On!");
+
+    // Wait for game to be set up
 
     loop {
         match connection.recv_event() {
@@ -48,14 +53,61 @@ fn main() {
     }
 }
 
+fn wait_for_game_start(connection: &mut Connection, discord: &Discord) -> Game {
+    loop {
+        match connection.recv_event() {
+            Ok(Event::MessageCreate(message)) => {
+                if message.content == "!play" {
+                    let mut game = Game {
+                        channel_id: message.channel_id,
+                        most_recent_message_id: message.id,
+                    };
+
+                    dbg!("start play!");
+
+                    let sent_message = discord
+                        .send_message(
+                            message.channel_id,
+                            "╔═════════════════════════════════════════\n\
+                             ║ You step into an [adjective] [location]\n\
+                             ╚═════════════════════════════════════════\n\
+                             What would you like to do?",
+                            "",
+                            false,
+                        )
+                        .expect("game start message failed");
+
+                    game.most_recent_message_id = sent_message.id;
+
+                    dbg!(discord.add_reaction(
+                        game.channel_id,
+                        sent_message.id,
+                        ReactionEmoji::Unicode("😄".to_string()),
+                    ));
+                    //message.channel.send('╔═════════════════════════════════════════╗');
+                    //message.channel.send('║ You step into an [adjective] [location] ║');
+                    //message.channel.send('╚═════════════════════════════════════════╝');
+                    //message.channel.send('What would you like to do?')
+                    //    .then(message => {
+                    //    message.react('⬅');
+                    //    message.react('⬆');
+                    //    message.react('⬇');
+                    //    message.react('➡');
+                    //});
+
+                    return game;
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 fn handle_user_message(message: &Message, discord: &Discord, game: &mut Game) {
     println!("{} says: {}", message.author.name, message.content);
 
     match message.content.as_str() {
-        "!play" => {
-            dbg!("start play!");
-            game.channel_id = Some(message.channel_id);
-        }
+        "!play" => {}
         "!test" => {
             let sent_message = discord.send_message(
                 message.channel_id,
@@ -64,17 +116,16 @@ fn handle_user_message(message: &Message, discord: &Discord, game: &mut Game) {
                 false,
             );
 
-            game.most_recent_message_id = sent_message.ok().map(|a| a.id);
+            // TODO: put this in the real initialization code
+            //game.most_recent_message_id = sent_message.ok().map(|a| a.id);
         }
         _ => {}
     }
 }
 
 fn handle_user_reaction(reaction: &Reaction, discord: &Discord, game: &mut Game) {
-    if let Some(most_recent_message_id) = game.most_recent_message_id {
-        if reaction.message_id == most_recent_message_id {
-            dbg!("MOST RECENT");
-        }
+    if reaction.message_id == game.most_recent_message_id {
+        dbg!("MOST RECENT");
     }
     dbg!(&reaction.user_id);
     dbg!(&reaction.channel_id);
