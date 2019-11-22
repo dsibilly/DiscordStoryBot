@@ -1,11 +1,19 @@
 #![deny(rust_2018_idioms)]
 
+// TODO: make this work WITHOUT Client, because I only want one of a thing to exist at a time ... if possible.
+
+use std::sync::Arc;
+use std::sync::Mutex;
+
 use serenity::client::Client;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
-struct Handler;
+#[derive(Default)]
+struct Handler {
+    info: Arc<Mutex<i32>>, // everything must be thread-safe
+}
 
 impl EventHandler for Handler {
     // Set a handler for the `message` event - so that whenever a new message
@@ -15,6 +23,9 @@ impl EventHandler for Handler {
     // events can be dispatched simultaneously.
     fn message(&self, ctx: Context, msg: Message) {
         if msg.content == "!ping" {
+            let mut info = self.info.lock().unwrap();
+            *info += 1;
+
             // Sending a message can fail, due to a network error, an
             // authentication error, or lack of permissions to post in the
             // channel, so log to stdout when some error happens, with a
@@ -43,7 +54,7 @@ fn main() {
     // Create a new instance of the Client, logging in as a bot. This will
     // automatically prepend your bot token with "Bot ", which is a requirement
     // by Discord for bot users.
-    let mut client = Client::new(&token, Handler).expect("Err creating client");
+    let mut client = Client::new(&token, Handler::default()).expect("Err creating client");
 
     // Finally, start a single shard, and start listening to events.
     //
