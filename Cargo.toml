@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 serenity = "0.7.3"
-color-backtrace = "0.3"
