@@ -4,6 +4,8 @@
 
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::thread::sleep;
+use std::time::Duration;
 
 use serenity::client::Client;
 use serenity::model::channel::Message;
@@ -18,18 +20,47 @@ struct Handler {
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "!ping" {
+        if msg.content == "!play" {
             let mut info = self.info.lock().unwrap();
             *info += 1;
 
-            match msg.channel_id.say(&ctx.http, "Pong!") {
+            let message_format = "╔═════════════════════════════════════════\n\
+                                  ║ You step into an [adjective] [location]\n\
+                                  ╚═════════════════════════════════════════\n\
+                                  What would you like to do?";
+
+            let mut countdown: i32 = 20;
+            let countdown_increment: i32 = 5;
+
+            match msg.channel_id.say(
+                &ctx.http,
+                message_format.to_string() + &format!(" - {}s remaining", countdown),
+            ) {
                 Err(why) => {
                     println!("Error sending message: {:?}", why);
                 }
-                Ok(message) => {
+                Ok(mut message) => {
                     message
-                        .react(ctx, ReactionType::Unicode("🙂".into()))
+                        .react(&ctx, ReactionType::Unicode("🙂".into()))
                         .expect("could not react to message");
+
+                    while countdown > 0 {
+                        sleep(Duration::from_secs(countdown_increment as u64));
+                        countdown -= countdown_increment;
+
+                        message
+                            .edit(&ctx, |m| {
+                                m.content(
+                                    message_format.to_string()
+                                        + &format!(" - {}s remaining", countdown),
+                                )
+                            })
+                            .expect("could not edit");
+                    }
+
+                    msg.channel_id
+                        .say(&ctx.http, "Chosen!")
+                        .expect("could not say");
                 }
             }
         }
