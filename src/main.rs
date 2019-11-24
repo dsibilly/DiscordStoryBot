@@ -1,17 +1,64 @@
 #![deny(rust_2018_idioms)]
 
-// TODO: make this work WITHOUT Client, because I only want one of a thing to exist at a time ... if possible.
-
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
+
+use inkling::read_story_from_string;
+use inkling::LineBuffer;
+use inkling::Prompt;
 
 use serenity::client::Client;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
+
+fn main() {
+    play_story(include_str!("../stories/story1.ink"));
+
+    let token = include_str!("../client_id.txt").trim();
+
+    let mut client = Client::new(&token, Handler::default()).expect("Err creating client");
+
+    if let Err(why) = client.start() {
+        println!("Client error: {:?}", why);
+    }
+}
+
+fn play_story(story_content: &str) {
+    let mut story = read_story_from_string(story_content).unwrap();
+    let mut line_buffer = Vec::new();
+
+    story.start().unwrap();
+
+    story.resume(&mut line_buffer).unwrap();
+
+    print_lines(&line_buffer);
+    line_buffer.clear();
+
+    while let Prompt::Choice(choices) = story.resume(&mut line_buffer).unwrap() {
+        print_lines(&line_buffer);
+        line_buffer.clear();
+
+        dbg!(&choices);
+        story.make_choice(0).unwrap();
+    }
+
+    print_lines(&line_buffer);
+    line_buffer.clear();
+}
+
+fn print_lines(lines: &LineBuffer) {
+    for line in lines {
+        print!("{}", line.text);
+
+        if line.text.ends_with('\n') {
+            print!("\n");
+        }
+    }
+}
 
 #[derive(Default)]
 struct Handler {
@@ -68,15 +115,5 @@ impl EventHandler for Handler {
 
     fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
-    }
-}
-
-fn main() {
-    let token = include_str!("../client_id.txt").trim();
-
-    let mut client = Client::new(&token, Handler::default()).expect("Err creating client");
-
-    if let Err(why) = client.start() {
-        println!("Client error: {:?}", why);
     }
 }
