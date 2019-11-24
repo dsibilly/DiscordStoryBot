@@ -6,8 +6,11 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use inkling::read_story_from_string;
+use inkling::Choice;
+use inkling::InklingError;
 use inkling::LineBuffer;
 use inkling::Prompt;
+use inkling::Story;
 
 use serenity::client::Client;
 use serenity::model::channel::Message;
@@ -16,7 +19,7 @@ use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
 fn main() {
-    play_story(include_str!("../stories/story1.ink"));
+    play_story(include_str!("../stories/story1.ink")).expect("story error");
 
     let token = include_str!("../client_id.txt").trim();
 
@@ -27,27 +30,52 @@ fn main() {
     }
 }
 
-fn play_story(story_content: &str) {
-    let mut story = read_story_from_string(story_content).unwrap();
-    let mut line_buffer = Vec::new();
+/// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
+/// while choices aren't Prompt::Done, there is still more story left.
+struct Game {
+    lines: LineBuffer,
+    story: Story,
+    choices: Prompt,
+}
 
-    story.start().unwrap();
+impl Game {
+    fn new(content: &str) -> Result<Self, InklingError> {
+        let mut me = Game {
+            lines: Vec::new(),
+            story: read_story_from_string(content).unwrap(),
+            choices: Prompt::Done,
+        };
 
-    story.resume(&mut line_buffer).unwrap();
+        me.story.start()?;
+        me.choices = me.story.resume(&mut me.lines)?;
 
-    print_lines(&line_buffer);
-    line_buffer.clear();
-
-    while let Prompt::Choice(choices) = story.resume(&mut line_buffer).unwrap() {
-        print_lines(&line_buffer);
-        line_buffer.clear();
-
-        dbg!(&choices);
-        story.make_choice(0).unwrap();
+        Ok(me)
     }
 
-    print_lines(&line_buffer);
-    line_buffer.clear();
+    fn choose(&mut self, i: usize) -> Result<(), InklingError> {
+        self.lines.clear();
+        self.story.make_choice(i)?;
+        self.choices = self.story.resume(&mut self.lines)?;
+        Ok(())
+    }
+}
+
+fn play_story(story_content: &str) -> Result<(), InklingError> {
+    let mut game = Game::new(story_content)?;
+
+    print_lines(&game.lines);
+
+    while let Prompt::Choice(choices) = &game.choices {
+        dbg!(&choices
+            .iter()
+            .map(|x| x.text.clone())
+            .collect::<Vec<String>>());
+
+        game.choose(0)?;
+        print_lines(&game.lines);
+    }
+
+    Ok(())
 }
 
 fn print_lines(lines: &LineBuffer) {
