@@ -23,12 +23,21 @@ fn main() {
 
     let token = include_str!("../client_id.txt").trim();
 
-    let mut client = Client::new(&token, Handler::default()).expect("Err creating client");
+    let mut client = Client::new(&token, Handler {
+        info: Arc::new(Mutex::new(0));
+        game:
+
+    }).expect("Err creating client");
 
     if let Err(why) = client.start() {
         println!("Client error: {:?}", why);
     }
 }
+
+fn play_game(content: &str) -> Result<(), InklingError> {
+
+}
+
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
@@ -88,9 +97,9 @@ fn print_lines(lines: &LineBuffer) {
     }
 }
 
-#[derive(Default)]
 struct Handler {
     info: Arc<Mutex<i32>>, // everything must be thread-safe
+    game: Arc<Mutex<Game>>,
 }
 
 impl EventHandler for Handler {
