@@ -1,7 +1,5 @@
 #![deny(rust_2018_idioms)]
 
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -19,25 +17,29 @@ use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
 fn main() {
-    play_story(include_str!("../stories/story1.ink")).expect("story error");
+    //play_story(include_str!("../stories/story1.ink")).expect("story error");
 
     let token = include_str!("../client_id.txt").trim();
 
-    let mut client = Client::new(&token, Handler {
-        info: Arc::new(Mutex::new(0));
-        game:
+    let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
 
-    }).expect("Err creating client");
+    let mut client = Client::new(
+        &token,
+        Handler {
+            info: 0,
+            game: game,
+        },
+    )
+    .expect("huh?");
+
+    //}).expect("Err creating client");
 
     if let Err(why) = client.start() {
         println!("Client error: {:?}", why);
     }
 }
 
-fn play_game(content: &str) -> Result<(), InklingError> {
-
-}
-
+//fn play_game(content: &str) -> Result<(), InklingError> {}
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
@@ -98,15 +100,15 @@ fn print_lines(lines: &LineBuffer) {
 }
 
 struct Handler {
-    info: Arc<Mutex<i32>>, // everything must be thread-safe
-    game: Arc<Mutex<Game>>,
+    info: i32,
+    game: Game,
 }
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
         if msg.content == "!play" {
-            let mut info = self.info.lock().unwrap();
-            *info += 1;
+            let mut info = self.info;
+            info += 1;
 
             let message_format = "╔═════════════════════════════════════════\n\
                                   ║ You step into an [adjective] [location]\n\
