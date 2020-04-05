@@ -7,5 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serenity = "0.7.3"
-inkling = "0.12.3"
+serenity = "0.8.1"
+inkling = {git = "https://github.com/MattWoelk/inkling.git", branch = "threading"}
