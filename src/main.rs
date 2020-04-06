@@ -110,17 +110,21 @@ impl EventHandler for Handler {
             let mut info = self.info;
             info += 1;
 
-            let message_format = "╔═════════════════════════════════════════\n\
-                                  ║ You step into an [adjective] [location]\n\
-                                  ╚═════════════════════════════════════════\n\
-                                  What would you like to do?";
+            let intro_lines = &self
+                .game
+                .lines
+                .iter()
+                .map(|s| &s.text)
+                .cloned()
+                .collect::<Vec<String>>()
+                .join("\n");
 
             let mut countdown: i32 = 20;
             let countdown_increment: i32 = 5;
 
             match msg.channel_id.say(
                 &ctx.http,
-                message_format.to_string() + &format!(" - {}s remaining", countdown),
+                intro_lines.to_string() + &format!("Choose - {}s remaining", countdown),
             ) {
                 Err(why) => {
                     println!("Error sending message: {:?}", why);
@@ -137,7 +141,7 @@ impl EventHandler for Handler {
                         message
                             .edit(&ctx, |m| {
                                 m.content(
-                                    message_format.to_string()
+                                    intro_lines.to_string()
                                         + &format!(" - {}s remaining", countdown),
                                 )
                             })
