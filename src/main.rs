@@ -1,5 +1,6 @@
 #![deny(rust_2018_idioms)]
 
+use std::collections::HashMap;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -23,14 +24,7 @@ fn main() {
 
     let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
 
-    let mut client = Client::new(
-        &token,
-        Handler {
-            info: 0,
-            game: game,
-        },
-    )
-    .expect("huh?");
+    let mut client = Client::new(&token, Handler { game: game }).expect("huh?");
 
     //}).expect("Err creating client");
 
@@ -100,16 +94,12 @@ fn print_lines(lines: &LineBuffer) {
 }
 
 struct Handler {
-    info: i32,
     game: Game,
 }
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
         if msg.content == "!play" {
-            let mut info = self.info;
-            info += 1;
-
             let intro_lines = &self
                 .game
                 .lines
@@ -119,21 +109,33 @@ impl EventHandler for Handler {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            let mut countdown: i32 = 20;
+            // TODO: make this list dynamic, chosen by the current text
+            let approved_emoji = vec!["🙂", "♥", "❤"];
+
+            let mut countdown: i32 = 7;
             let countdown_increment: i32 = 5;
 
-            match msg.channel_id.say(
+            // TODO: make this match return an Option<Message>, and then we can put
+            //       this in a nice function and chain them together?
+
+            let sent_message = msg.channel_id.say(
                 &ctx.http,
                 intro_lines.to_string() + &format!("Choose - {}s remaining", countdown),
-            ) {
+            );
+
+            match sent_message {
                 Err(why) => {
                     println!("Error sending message: {:?}", why);
                 }
                 Ok(mut message) => {
-                    message
-                        .react(&ctx, ReactionType::Unicode("🙂".into()))
-                        .expect("could not react to message");
+                    // React to self with options
+                    for &emoji in &approved_emoji {
+                        message
+                            .react(&ctx, ReactionType::Unicode(emoji.into()))
+                            .expect("could not react to message");
+                    }
 
+                    // Count Down
                     while countdown > 0 {
                         sleep(Duration::from_secs(countdown_increment as u64));
                         countdown -= countdown_increment;
@@ -148,11 +150,33 @@ impl EventHandler for Handler {
                             .expect("could not edit");
                     }
 
+                    // Get the highest-rated emoji (from the approved list for this text)
+                    let mut counts = HashMap::new();
+
+                    for r in message.reactions {
+                        if approved_emoji.contains(&r.reaction_type.to_string().as_str()) {
+                            counts.insert((&r).reaction_type.to_string(), r.count);
+                        }
+                    }
+
+                    let winning_emoji = (&counts)
+                        .iter()
+                        .max_by_key(|a| a.1)
+                        .expect("No emoji was chosen, not even by the bot")
+                        .0
+                        .to_owned();
+
+                    // Declare the winner?
+                    // TODO: do this as the start of the next message instead, to reduce bot message count
                     msg.channel_id
-                        .say(&ctx.http, "Chosen!")
-                        .expect("could not say");
+                        .say(&ctx.http, "Chosen: ".to_string() + &winning_emoji)
+                        .expect("could not say who won. Could not send that message.");
+
+                    // TODO: do something with this winning emoji, like return it
                 }
             }
+        } else if msg.content == "!continue" {
+            println!("huh?!");
         }
     }
 
