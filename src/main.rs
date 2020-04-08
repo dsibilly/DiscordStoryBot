@@ -138,17 +138,18 @@ impl EventHandler for Handler {
         let mut game: Game = Game::new(&self.game_string).expect("Could not parse story");
 
         if msg.content == "!play" {
-            let intro_lines = &(game.lines_as_text());
+            while let Prompt::Choice(choices) = &game.choices {
+                dbg!(game.lines_as_text());
+                let text = &(game.lines_as_text());
+                let approved_emoji = game.choices_as_strings();
+                let choice = self.do_story_beat(&ctx, &msg, text, &approved_emoji);
+                game.choose_by_emoji(&choice);
+            }
 
-            let approved_emoji = game.choices_as_strings();
-
-            let choice = self.do_story_beat(&ctx, &msg, intro_lines, &approved_emoji);
-
-            game.choose_by_emoji(&choice);
-
+            dbg!();
+            dbg!("STORY IS OVER NOW");
             dbg!(game.lines_as_text());
-
-        // TODO: progress in the story.
+            dbg!(game.choices);
         } else if msg.content == "!continue" {
             println!("huh?!");
         }
