@@ -6,10 +6,10 @@ Residence of Monsieur Phileas Fogg.
 Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides!
 "Passepartout," said he. "We are going around the world!"
 
-+ "Around the world, Monsieur?"
++ ❤
     I was utterly astonished.
     -> astonished
-+ [Nod curtly.] -> nod
++ 🙂 -> nod
 
 
 === astonished ===

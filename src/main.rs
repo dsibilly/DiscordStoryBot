@@ -22,9 +22,16 @@ fn main() {
 
     let token = include_str!("../client_id.txt").trim();
 
-    let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
+    //let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
+    let game_string = include_str!("../stories/story1.ink");
 
-    let mut client = Client::new(&token, Handler { game: game }).expect("huh?");
+    let mut client = Client::new(
+        &token,
+        Handler {
+            game_string: game_string.into(),
+        },
+    )
+    .expect("huh?");
 
     //}).expect("Err creating client");
 
@@ -57,11 +64,38 @@ impl Game {
         Ok(me)
     }
 
+    fn choose_by_emoji(&mut self, emoji: &str) {
+        let index = self
+            .choices_as_strings()
+            .iter()
+            .position(|s| s == emoji)
+            .expect("emoji choice was somehow not found...");
+        self.choose(index);
+    }
+
     fn choose(&mut self, i: usize) -> Result<(), InklingError> {
         self.lines.clear();
         self.story.make_choice(i)?;
         self.choices = self.story.resume(&mut self.lines)?;
         Ok(())
+    }
+
+    fn lines_as_text(&self) -> String {
+        self.lines
+            .iter()
+            .map(|s| &s.text)
+            .cloned()
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
+
+    fn choices_as_strings(&self) -> Vec<String> {
+        self.choices
+            .get_choices()
+            .unwrap()
+            .iter()
+            .map(|e| e.text.clone())
+            .collect()
     }
 }
 
@@ -94,28 +128,27 @@ fn print_lines(lines: &LineBuffer) {
 }
 
 struct Handler {
-    game: Game,
+    game_string: String,
+    //game: Game,
 }
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
+        // TODO: give this inner mutability instead of making it a local variable?
+        let mut game: Game = Game::new(&self.game_string).expect("Could not parse story");
+
         if msg.content == "!play" {
-            let intro_lines = &self
-                .game
-                .lines
-                .iter()
-                .map(|s| &s.text)
-                .cloned()
-                .collect::<Vec<String>>()
-                .join("\n");
+            let intro_lines = &(game.lines_as_text());
 
-            // TODO: make this list dynamic, chosen by the current text
-            let approved_emoji = vec!["🙂", "♥", "❤"];
+            let approved_emoji = game.choices_as_strings();
 
-            self.do_story_beat(&ctx, &msg, intro_lines, &approved_emoji);
+            let choice = self.do_story_beat(&ctx, &msg, intro_lines, &approved_emoji);
 
-            // TODO: progress in the story.
+            game.choose_by_emoji(&choice);
 
+            dbg!(game.lines_as_text());
+
+        // TODO: progress in the story.
         } else if msg.content == "!continue" {
             println!("huh?!");
         }
@@ -132,7 +165,7 @@ impl Handler {
         ctx: &Context,
         msg: &Message,
         text: &str,
-        approved_emoji: &[&str],
+        approved_emoji: &[String],
     ) -> String {
         let channel = msg.channel_id;
         let mut countdown: i32 = 5;
@@ -146,7 +179,7 @@ impl Handler {
             .expect("Could not send next initial text");
 
         // React to self with options
-        for &emoji in approved_emoji {
+        for emoji in approved_emoji {
             message
                 .react(ctx, ReactionType::Unicode(emoji.into()))
                 .expect("could not react to message");
@@ -168,7 +201,7 @@ impl Handler {
         let mut counts = HashMap::new();
 
         for r in message.reactions {
-            if approved_emoji.contains(&r.reaction_type.to_string().as_str()) {
+            if approved_emoji.contains(&r.reaction_type.to_string()) {
                 counts.insert((&r).reaction_type.to_string(), r.count);
             }
         }
