@@ -1,11 +1,11 @@
 #![deny(rust_2018_idioms)]
 
 use std::collections::HashMap;
+use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
 
 use inkling::read_story_from_string;
-use inkling::Choice;
 use inkling::InklingError;
 use inkling::LineBuffer;
 use inkling::Prompt;
@@ -18,17 +18,14 @@ use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
 fn main() {
-    //play_story(include_str!("../stories/story1.ink")).expect("story error");
-
     let token = include_str!("../client_id.txt").trim();
 
-    //let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
-    let game_string = include_str!("../stories/story1.ink");
+    let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
 
     let mut client = Client::new(
         &token,
         Handler {
-            game_string: game_string.into(),
+            game: Mutex::new(game),
         },
     )
     .expect("huh?");
@@ -70,7 +67,7 @@ impl Game {
             .iter()
             .position(|s| s == emoji)
             .expect("emoji choice was somehow not found...");
-        self.choose(index);
+        self.choose(index).expect("Choice was not possible");
     }
 
     fn choose(&mut self, i: usize) -> Result<(), InklingError> {
@@ -99,57 +96,61 @@ impl Game {
     }
 }
 
-fn play_story(story_content: &str) -> Result<(), InklingError> {
-    let mut game = Game::new(story_content)?;
-
-    print_lines(&game.lines);
-
-    while let Prompt::Choice(choices) = &game.choices {
-        dbg!(&choices
-            .iter()
-            .map(|x| x.text.clone())
-            .collect::<Vec<String>>());
-
-        game.choose(0)?;
-        print_lines(&game.lines);
-    }
-
-    Ok(())
-}
-
-fn print_lines(lines: &LineBuffer) {
-    for line in lines {
-        print!("{}", line.text);
-
-        if line.text.ends_with('\n') {
-            print!("\n");
-        }
-    }
-}
-
 struct Handler {
-    game_string: String,
-    //game: Game,
+    game: Mutex<Game>,
 }
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
         // TODO: give this inner mutability instead of making it a local variable?
-        let mut game: Game = Game::new(&self.game_string).expect("Could not parse story");
+
+        let mut has_choices = false;
+        {
+            let game = self.game.lock().unwrap();
+            if let Prompt::Choice(_) = &game.choices {
+                has_choices = true;
+            }
+        }
 
         if msg.content == "!play" {
-            while let Prompt::Choice(choices) = &game.choices {
-                dbg!(game.lines_as_text());
-                let text = &(game.lines_as_text());
-                let approved_emoji = game.choices_as_strings();
-                let choice = self.do_story_beat(&ctx, &msg, text, &approved_emoji);
-                game.choose_by_emoji(&choice);
+            while has_choices {
+                let text;
+                let approved_emoji;
+
+                // scope for mutex
+                {
+                    let game = self.game.lock().unwrap();
+                    dbg!(game.lines_as_text());
+                    text = (game.lines_as_text()).clone();
+                    approved_emoji = game.choices_as_strings();
+                }
+
+                let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji);
+
+                // scope for mutex
+                {
+                    let mut game = self.game.lock().unwrap();
+                    game.choose_by_emoji(&choice);
+
+                    has_choices = false;
+                    if let Prompt::Choice(_) = &game.choices {
+                        has_choices = true;
+                    }
+                }
+            }
+
+            // scope for mutex
+            {
+                let game = self.game.lock().unwrap();
+                let text = (game.lines_as_text()).clone();
+                let channel = msg.channel_id;
+                channel
+                    .say(&ctx.http, text.to_string() + &format!("\nEND."))
+                    .expect("Could not send next initial text");
             }
 
             dbg!();
             dbg!("STORY IS OVER NOW");
-            dbg!(game.lines_as_text());
-            dbg!(game.choices);
         } else if msg.content == "!continue" {
             println!("huh?!");
         }
