@@ -37,8 +37,6 @@ fn main() {
     }
 }
 
-//fn play_game(content: &str) -> Result<(), InklingError> {}
-
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
 struct Game {
@@ -142,10 +140,10 @@ impl EventHandler for Handler {
             // scope for mutex
             {
                 let game = self.game.lock().unwrap();
-                let text = (game.lines_as_text()).clone();
+                let text = game.lines_as_text();
                 let channel = msg.channel_id;
                 channel
-                    .say(&ctx.http, text.to_string() + &format!("\nEND."))
+                    .say(&ctx.http, text + &"\nEND.".to_string())
                     .expect("Could not send next initial text");
             }
 
@@ -204,7 +202,7 @@ impl Handler {
 
         for r in message.reactions {
             if approved_emoji.contains(&r.reaction_type.to_string()) {
-                counts.insert((&r).reaction_type.to_string(), r.count);
+                counts.insert(r.reaction_type.to_string(), r.count);
             }
         }
 
@@ -222,6 +220,6 @@ impl Handler {
             .expect("could not say who won. Could not send that message.");
 
         // Return the winning emoji
-        winning_emoji.to_string()
+        winning_emoji
     }
 }
