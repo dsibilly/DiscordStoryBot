@@ -112,12 +112,10 @@ impl EventHandler for Handler {
 
         if msg.content == "!play" {
             while has_choices {
-                let text;
-                let approved_emoji;
+                let mut text = "".into();
+                let mut approved_emoji = vec![];
 
-                // scope for mutex
-                {
-                    let game = self.game.lock().unwrap();
+                if let Ok(game) = self.game.lock() {
                     dbg!(game.lines_as_text());
                     text = (game.lines_as_text()).clone();
                     approved_emoji = game.choices_as_strings();
@@ -125,9 +123,7 @@ impl EventHandler for Handler {
 
                 let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji);
 
-                // scope for mutex
-                {
-                    let mut game = self.game.lock().unwrap();
+                if let Ok(mut game) = self.game.lock() {
                     game.choose_by_emoji(&choice);
 
                     has_choices = false;
@@ -137,9 +133,7 @@ impl EventHandler for Handler {
                 }
             }
 
-            // scope for mutex
-            {
-                let game = self.game.lock().unwrap();
+            if let Ok(game) = self.game.lock() {
                 let text = game.lines_as_text();
                 let channel = msg.channel_id;
                 channel
