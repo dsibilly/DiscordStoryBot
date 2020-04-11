@@ -3,8 +3,10 @@ Residence of Monsieur Phileas Fogg.
 -> london
 
 === london ===
-Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides!
-"Passepartout," said he. "We are going around the world!"
+# health +1
+Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides! #tag1 #tag2
+# tag 4
+"Passepartout," said he. "We are going around the world!" #tag 3
 
 + ❤
     I was utterly astonished.

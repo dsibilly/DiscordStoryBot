@@ -100,8 +100,8 @@ struct Handler {
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
         let mut has_choices = false;
-        {
-            let game = self.game.lock().unwrap();
+
+        if let Ok(game) = self.game.lock() {
             if let Prompt::Choice(_) = &game.choices {
                 has_choices = true;
             }
@@ -130,8 +130,19 @@ impl EventHandler for Handler {
                 let mut text = "".into();
                 let mut approved_emoji = vec![];
 
+                // Get list of choice options
                 if let Ok(game) = self.game.lock() {
                     text = (game.lines_as_text()).clone();
+
+                    let location_tags = game
+                        .story
+                        .get_knot_tags(&game.story.get_current_location().unwrap().0)
+                        .unwrap();
+                    dbg!(location_tags);
+
+                    for x in &game.lines {
+                        dbg!(&x.tags);
+                    }
                     approved_emoji = game.choices_as_strings();
                 }
 
@@ -155,7 +166,6 @@ impl EventHandler for Handler {
                     .expect("Could not send next initial text");
             }
 
-            dbg!();
             dbg!("STORY IS OVER NOW");
         } else if msg.content == "!continue" {
             println!("huh?!");
