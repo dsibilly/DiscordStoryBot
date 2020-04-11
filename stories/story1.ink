@@ -1,5 +1,18 @@
 LONDON, 1872
 Residence of Monsieur Phileas Fogg.
+-> paris
+
+=== paris
+# health +2
+
+= downtown
+# downtown tag
+It was cool downtown. #tag ya
+-> suburbs
+
+= suburbs
+# suburbs tag
+Suburbs were cool too. #tag too
 -> london
 
 === london ===
