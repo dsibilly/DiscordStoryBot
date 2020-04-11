@@ -140,6 +140,9 @@ impl EventHandler for Handler {
                         .unwrap();
                     dbg!(location_tags);
 
+                    let health = game.story.get_variable("health").unwrap();
+                    dbg!(health);
+
                     for x in &game.lines {
                         dbg!(&x.tags);
                     }
