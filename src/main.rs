@@ -217,7 +217,7 @@ impl Handler {
         }
 
         // Return the winning emoji
-        (&counts)
+        counts
             .iter()
             .max_by_key(|a| a.1)
             .expect("No emoji was chosen, not even by the bot")
