@@ -109,6 +109,13 @@ impl EventHandler for Handler {
             }
         }
 
+        if msg.content.starts_with("!help") {
+            let channel = msg.channel_id;
+            channel
+                .say(&ctx.http, "To start a story type something like \"!play 30\", where \"30\" is the number of seconds each voting round should last.".to_string())
+                .expect("Could not send help text");
+        }
+
         if msg.content.starts_with("!play") {
             let mut countdown_time = 5;
 
