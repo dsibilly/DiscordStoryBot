@@ -1,5 +1,6 @@
 #![deny(rust_2018_idioms)]
 
+use std::cmp::min;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::thread::sleep;
@@ -100,8 +101,6 @@ struct Handler {
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
-        // TODO: give this inner mutability instead of making it a local variable?
-
         let mut has_choices = false;
         {
             let game = self.game.lock().unwrap();
@@ -110,18 +109,28 @@ impl EventHandler for Handler {
             }
         }
 
-        if msg.content == "!play" {
+        if msg.content.starts_with("!play") {
+            let mut countdown_time = 5;
+
+            // Parse a number if we got one after "play "
+            if msg.content.contains(' ') {
+                let subs = msg.content.split(' ').collect::<Vec<&str>>();
+                dbg!(subs[1]);
+                if let Ok(num) = subs[1].parse::<u32>() {
+                    countdown_time = num;
+                }
+            }
+
             while has_choices {
                 let mut text = "".into();
                 let mut approved_emoji = vec![];
 
                 if let Ok(game) = self.game.lock() {
-                    dbg!(game.lines_as_text());
                     text = (game.lines_as_text()).clone();
                     approved_emoji = game.choices_as_strings();
                 }
 
-                let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji);
+                let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji, countdown_time);
 
                 if let Ok(mut game) = self.game.lock() {
                     game.choose_by_emoji(&choice);
@@ -160,15 +169,16 @@ impl Handler {
         msg: &Message,
         text: &str,
         approved_emoji: &[String],
+        countdown: u32,
     ) -> String {
         let channel = msg.channel_id;
-        let mut countdown: i32 = 5;
+        let mut countdown = countdown as i32;
         let countdown_increment: i32 = 5;
 
         let mut message = channel
             .say(
                 &ctx.http,
-                text.to_string() + &format!("Choose - {}s remaining", countdown),
+                text.to_string() + &format!("\n({}s remaining)", countdown),
             )
             .expect("Could not send next initial text");
 
@@ -181,12 +191,13 @@ impl Handler {
 
         // Count Down
         while countdown > 0 {
-            sleep(Duration::from_secs(countdown_increment as u64));
-            countdown -= countdown_increment;
+            let sleep_this_long = min(countdown, countdown_increment);
+            sleep(Duration::from_secs(sleep_this_long as u64));
+            countdown -= sleep_this_long;
 
             message
                 .edit(ctx, |m| {
-                    m.content(text.to_string() + &format!(" - {}s remaining", countdown))
+                    m.content(text.to_string() + &format!("\n({}s remaining)", countdown))
                 })
                 .expect("could not edit");
         }
