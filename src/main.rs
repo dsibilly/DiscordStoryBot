@@ -29,9 +29,7 @@ fn main() {
             game: Mutex::new(game),
         },
     )
-    .expect("huh?");
-
-    //}).expect("Err creating client");
+    .expect("Err creating client");
 
     if let Err(why) = client.start() {
         println!("Client error: {:?}", why);
@@ -218,20 +216,12 @@ impl Handler {
             }
         }
 
-        let winning_emoji = (&counts)
+        // Return the winning emoji
+        (&counts)
             .iter()
             .max_by_key(|a| a.1)
             .expect("No emoji was chosen, not even by the bot")
             .0
-            .to_owned();
-
-        // Declare the winner?
-        // TODO: do this as the start of the next message instead, to reduce bot message count
-        channel
-            .say(&ctx.http, "Chosen: ".to_string() + &winning_emoji)
-            .expect("could not say who won. Could not send that message.");
-
-        // Return the winning emoji
-        winning_emoji
+            .to_owned()
     }
 }
