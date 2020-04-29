@@ -36,7 +36,7 @@ fn main() {
     }
 }
 
-/// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
+/// Usage: Initialize with new() then use the fields, which well be updated whenever choose_by_index() or choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
 struct Game {
     lines: LineBuffer,
@@ -64,14 +64,27 @@ impl Game {
             .iter()
             .position(|s| s == emoji)
             .expect("emoji choice was somehow not found...");
-        self.choose(index).expect("Choice was not possible");
+        self.choose_by_index(index)
+            .expect("Choice was not possible");
     }
 
-    fn choose(&mut self, i: usize) -> Result<(), InklingError> {
+    fn choose_by_index(&mut self, i: usize) -> Result<(), InklingError> {
         self.lines.clear();
         self.story.make_choice(i)?;
         self.choices = self.story.resume(&mut self.lines)?;
         Ok(())
+    }
+
+    fn choose(&mut self, emoji: &str) -> Option<()> {
+        let choices = self.choices_as_strings();
+        let index = choices.iter().position(|x| x == emoji);
+
+        return if let Some(index) = index {
+            self.choose_by_index(index);
+            Some(())
+        } else {
+            None
+        };
     }
 
     fn lines_as_text(&self) -> String {
@@ -90,6 +103,16 @@ impl Game {
             .iter()
             .map(|e| e.text.clone())
             .collect()
+    }
+
+    fn tags(&self) -> Vec<String> {
+        let mut tags = vec![];
+
+        for x in &self.lines {
+            tags.extend(x.tags.clone());
+        }
+
+        tags
     }
 }
 
@@ -236,5 +259,30 @@ impl Handler {
             .expect("No emoji was chosen, not even by the bot")
             .0
             .to_owned()
+    }
+}
+
+#[cfg(test)]
+#[allow(unused)] // TODO: Delete This
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic_story() {
+        let mut game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
+        dbg!(&game.lines_as_text());
+
+        let choices = game.choices_as_strings();
+        dbg!(game.choose_by_index(0));
+
+        dbg!(game.tags());
+        dbg!(game.choose_by_index(0));
+
+        dbg!(game.tags());
+        dbg!(game.choose_by_index(0));
+
+        dbg!(game.tags());
+
+        assert_eq!(0, 1);
     }
 }
