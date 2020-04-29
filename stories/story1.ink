@@ -6,7 +6,6 @@ Residence of Monsieur Phileas Fogg.
 -> paris
 
 === paris
-# health +2
 
 = downtown
 # downtown tag
