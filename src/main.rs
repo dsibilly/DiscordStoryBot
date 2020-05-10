@@ -6,17 +6,13 @@ use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
 
-use inkling::read_story_from_string;
-use inkling::InklingError;
-use inkling::LineBuffer;
-use inkling::Prompt;
-use inkling::Story;
-
 use serenity::client::Client;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
+
+use discord_bot::Game;
 
 fn main() {
     let token = include_str!("../client_id.txt").trim();
@@ -36,63 +32,6 @@ fn main() {
     }
 }
 
-/// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
-/// while choices aren't Prompt::Done, there is still more story left.
-struct Game {
-    lines: LineBuffer,
-    story: Story,
-    choices: Prompt,
-}
-
-impl Game {
-    fn new(content: &str) -> Result<Self, InklingError> {
-        let mut me = Game {
-            lines: Vec::new(),
-            story: read_story_from_string(content).unwrap(),
-            choices: Prompt::Done,
-        };
-
-        me.story.start()?;
-        me.choices = me.story.resume(&mut me.lines)?;
-
-        Ok(me)
-    }
-
-    fn choose_by_emoji(&mut self, emoji: &str) {
-        let index = self
-            .choices_as_strings()
-            .iter()
-            .position(|s| s == emoji)
-            .expect("emoji choice was somehow not found...");
-        self.choose(index).expect("Choice was not possible");
-    }
-
-    fn choose(&mut self, i: usize) -> Result<(), InklingError> {
-        self.lines.clear();
-        self.story.make_choice(i)?;
-        self.choices = self.story.resume(&mut self.lines)?;
-        Ok(())
-    }
-
-    fn lines_as_text(&self) -> String {
-        self.lines
-            .iter()
-            .map(|s| &s.text)
-            .cloned()
-            .collect::<Vec<String>>()
-            .join("\n")
-    }
-
-    fn choices_as_strings(&self) -> Vec<String> {
-        self.choices
-            .get_choices()
-            .unwrap()
-            .iter()
-            .map(|e| e.text.clone())
-            .collect()
-    }
-}
-
 struct Handler {
     game: Mutex<Game>,
 }
@@ -102,9 +41,7 @@ impl EventHandler for Handler {
         let mut has_choices = false;
 
         if let Ok(game) = self.game.lock() {
-            if let Prompt::Choice(_) = &game.choices {
-                has_choices = true;
-            }
+            has_choices = game.has_choices();
         }
 
         if msg.content.starts_with("!help") {
@@ -143,9 +80,8 @@ impl EventHandler for Handler {
                     let health = game.story.get_variable("health").unwrap();
                     dbg!(health);
 
-                    for x in &game.lines {
-                        dbg!(&x.tags);
-                    }
+                    dbg!(&game.tags());
+
                     approved_emoji = game.choices_as_strings();
                 }
 
@@ -154,10 +90,7 @@ impl EventHandler for Handler {
                 if let Ok(mut game) = self.game.lock() {
                     game.choose_by_emoji(&choice);
 
-                    has_choices = false;
-                    if let Prompt::Choice(_) = &game.choices {
-                        has_choices = true;
-                    }
+                    has_choices = game.has_choices();
                 }
             }
 
