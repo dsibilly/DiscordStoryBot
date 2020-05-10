@@ -6,7 +6,6 @@ Residence of Monsieur Phileas Fogg.
 -> paris
 
 === paris
-# health +2
 
 = downtown
 # downtown tag
@@ -16,11 +15,13 @@ It was cool downtown. #tag ya
 = suburbs
 # suburbs tag
 Suburbs were cool too. #tag too
+~ health -= 2
 -> london
 
 === london ===
 # health +1
 Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides! #tag1 #tag2
+health: "{health}"
 # tag 4
 "Passepartout," said he. "We are going around the world!" #tag 3
 
