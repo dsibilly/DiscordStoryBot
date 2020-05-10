@@ -87,6 +87,7 @@ impl EventHandler for Handler {
 
                 let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji, countdown_time);
 
+                has_choices = false;
                 if let Ok(mut game) = self.game.lock() {
                     game.choose_by_emoji(&choice);
 
