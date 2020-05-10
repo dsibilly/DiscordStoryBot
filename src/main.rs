@@ -38,10 +38,10 @@ struct Handler {
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
-        let mut has_choices = false;
+        let mut is_over = true;
 
         if let Ok(game) = self.game.lock() {
-            has_choices = game.has_choices();
+            is_over = game.is_over();
         }
 
         if msg.content.starts_with("!help") {
@@ -63,7 +63,7 @@ impl EventHandler for Handler {
                 }
             }
 
-            while has_choices {
+            while !is_over {
                 let mut text = "".into();
                 let mut approved_emoji = vec![];
 
@@ -87,11 +87,11 @@ impl EventHandler for Handler {
 
                 let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji, countdown_time);
 
-                has_choices = false;
+                is_over = true;
                 if let Ok(mut game) = self.game.lock() {
                     game.choose_by_emoji(&choice);
 
-                    has_choices = game.has_choices();
+                    is_over = game.is_over();
                 }
             }
 
