@@ -32,11 +32,11 @@ fn main() {
     }
 }
 
-struct Handler {
-    game: Mutex<Game>,
+struct Handler<'a> {
+    game: Mutex<Game<'a>>,
 }
 
-impl EventHandler for Handler {
+impl <'a>EventHandler for Handler<'a> {
     fn message(&self, ctx: Context, msg: Message) {
         let mut is_over = true;
 
@@ -71,16 +71,16 @@ impl EventHandler for Handler {
                 if let Ok(game) = self.game.lock() {
                     text = (game.lines_as_text()).clone();
 
-                    let location_tags = game
-                        .story
-                        .get_knot_tags(&game.story.get_current_location().unwrap().0)
-                        .unwrap();
-                    dbg!(location_tags);
+                    //let location_tags = game
+                    //    .story
+                    //    .get_knot_tags(&game.story.get_current_location().unwrap().0)
+                    //    .unwrap();
+                    //dbg!(location_tags);
 
-                    let health = game.story.get_variable("health").unwrap();
-                    dbg!(health);
+                    //let health = game.story.get_variable("health").unwrap();
+                    //dbg!(health);
 
-                    dbg!(&game.tags());
+                    //dbg!(&game.tags());
 
                     approved_emoji = game.choices_as_strings();
                 }
@@ -114,7 +114,7 @@ impl EventHandler for Handler {
     }
 }
 
-impl Handler {
+impl<'a> Handler<'a> {
     fn do_story_beat(
         &self,
         ctx: &Context,

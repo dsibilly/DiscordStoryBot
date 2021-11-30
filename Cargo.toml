@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 serenity = "0.8.1"
 inkling = {git = "https://github.com/MattWoelk/inkling.git", branch = "threading"}
+inkparserchumsky = { path = "../rust/inkparserchumsky"}
