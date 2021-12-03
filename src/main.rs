@@ -71,21 +71,12 @@ impl <'a>EventHandler for Handler<'a> {
                 if let Ok(game) = self.game.lock() {
                     text = (game.lines_as_text()).clone();
 
-                    //let location_tags = game
-                    //    .story
-                    //    .get_knot_tags(&game.story.get_current_location().unwrap().0)
-                    //    .unwrap();
-                    //dbg!(location_tags);
-
-                    //let health = game.story.get_variable("health").unwrap();
-                    //dbg!(health);
-
-                    //dbg!(&game.tags());
-
                     approved_emoji = game.choices_as_strings();
+                    dbg!(&approved_emoji); // TODO: this is wrong. Why?
                 }
 
                 let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji, countdown_time);
+                dbg!(&choice);
 
                 is_over = true;
                 if let Ok(mut game) = self.game.lock() {
