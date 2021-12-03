@@ -14,6 +14,9 @@ use serenity::prelude::{Context, EventHandler};
 
 use discord_bot::Game;
 
+// TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
+// TODO: maybe if it's a single letter, we can find the emoji version of that letter?
+
 fn main() {
     let token = include_str!("../client_id.txt").trim();
 
@@ -36,7 +39,7 @@ struct Handler<'a> {
     game: Mutex<Game<'a>>,
 }
 
-impl <'a>EventHandler for Handler<'a> {
+impl<'a> EventHandler for Handler<'a> {
     fn message(&self, ctx: Context, msg: Message) {
         let mut is_over = true;
 
