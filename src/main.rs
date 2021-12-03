@@ -134,6 +134,9 @@ impl<'a> Handler<'a> {
             )
             .expect("Could not send next initial text");
 
+        dbg!(msg.unpin(ctx)); // TODO: docs, saying that Manage Messages is required
+        dbg!(message.pin(ctx));
+
         // React to self with options
         for emoji in approved_emoji {
             message
