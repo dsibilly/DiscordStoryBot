@@ -204,7 +204,6 @@ name = "discord_bot"
 version = "0.1.0"
 dependencies = [
  "ink_runner",
- "inkling",
  "serenity",
 ]
 
@@ -489,11 +488,6 @@ dependencies = [
  "ron",
  "serde",
 ]
-
-[[package]]
-name = "inkling"
-version = "0.12.3"
-source = "git+https://github.com/MattWoelk/inkling.git?branch=threading#e5b8cd7c0dbdc8eb727a545531a3c2eac9adf31e"
 
 [[package]]
 name = "input_buffer"

@@ -1,7 +1,7 @@
 #![deny(rust_2018_idioms)]
 
 use std::cmp::min;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
@@ -16,11 +16,15 @@ use discord_bot::Game;
 
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
 // TODO: maybe if it's a single letter, we can find the emoji version of that letter?
+// TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
+// TODO: an option to attach photos
+// TODO: an option to attach audio
+// TODO: an option to attach video
 
 fn main() {
     let token = include_str!("../client_id.txt").trim();
 
-    let game = Game::new(include_str!("../stories/story1.ink")).expect("wut");
+    let game = Game::new(include_str!("../stories/story1.ink"));
 
     let mut client = Client::new(
         &token,
@@ -122,6 +126,7 @@ impl<'a> Handler<'a> {
         let countdown_increment: i32 = 5;
 
         let mut message = channel
+            //.send_files()
             .say(
                 &ctx.http,
                 text.to_string() + &format!("\n({}s remaining)", countdown),
@@ -152,7 +157,7 @@ impl<'a> Handler<'a> {
         }
 
         // Get the highest-rated emoji (from the approved list for this text)
-        let mut counts = HashMap::new();
+        let mut counts = BTreeMap::new();
 
         for r in message.reactions {
             if approved_emoji.contains(&r.reaction_type.to_string()) {

@@ -1,27 +1,19 @@
 #![deny(rust_2018_idioms)]
 
-use ink_runner::ink_parser::DialogLine;
 use ink_runner::ink_runner::StoryRunner;
-use inkling::read_story_from_string;
-use inkling::InklingError;
-use inkling::LineBuffer;
-use inkling::Prompt;
-use inkling::Story;
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
 pub struct Game<'a> {
     runner: StoryRunner<'a>,
-    lines: LineBuffer,
     lines_2: Vec<String>,
     choices_2: Vec<String>,
 }
 
 impl<'a> Game<'a> {
-    pub fn new(content: &str) -> Result<Self, InklingError> {
+    pub fn new(content: &str) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
-            lines: Vec::new(),
             lines_2: vec![],
             choices_2: vec![],
         };
@@ -34,7 +26,7 @@ impl<'a> Game<'a> {
             .collect();
         me.choices_2 = me.runner.get_options();
 
-        Ok(me)
+        me
     }
 
     pub fn choose_by_emoji(&mut self, emoji: &str) {
@@ -56,13 +48,7 @@ impl<'a> Game<'a> {
     }
 
     pub fn tags(&self) -> Vec<String> {
-        let mut tags = vec![];
-
-        for x in self.lines.clone() {
-            tags.extend(x.tags.clone());
-        }
-
-        tags
+        unimplemented!()
     }
 }
 
@@ -75,13 +61,11 @@ mod tests {
     fn basic_story() {
         let mut game = Game::new(include_str!("../stories/basic_story.ink")).expect("wut");
         dbg!(&game.lines_as_text());
-        dbg!(&game.tags());
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
 
         dbg!(game.choose_by_index(0));
         dbg!(&game.lines_as_text());
-        dbg!(&game.tags());
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
 

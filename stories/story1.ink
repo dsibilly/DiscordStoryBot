@@ -1,8 +1,18 @@
 VAR health = 100
 
 
-LONDON, 1872
+Location: The great castle of ooooooom #img:castle_lowres.jpg
 Residence of Monsieur Phileas Fogg.
+`😵`
+`/\`
+` |`
+`/ \`
+```
+😵
+/\
+ |
+/ \
+```
 -> downtown
 
 == downtown
