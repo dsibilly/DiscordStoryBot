@@ -6,6 +6,7 @@ use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
 
+use serenity::async_trait;
 use serenity::client::Client;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
@@ -21,20 +22,20 @@ use discord_bot::Game;
 // TODO: an option to attach audio
 // TODO: an option to attach video
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let token = include_str!("../client_id.txt").trim();
 
     let game = Game::new(include_str!("../stories/story1.ink"));
 
-    let mut client = Client::new(
-        &token,
-        Handler {
+    let mut client = Client::builder(token)
+        .event_handler(Handler {
             game: Mutex::new(game),
-        },
-    )
-    .expect("Err creating client");
+        })
+        .await
+        .expect("Error creating client");
 
-    if let Err(why) = client.start() {
+    if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
     }
 }
@@ -43,18 +44,14 @@ struct Handler<'a> {
     game: Mutex<Game<'a>>,
 }
 
+#[async_trait]
 impl<'a> EventHandler for Handler<'a> {
-    fn message(&self, ctx: Context, msg: Message) {
-        let mut is_over = true;
-
-        if let Ok(game) = self.game.lock() {
-            is_over = game.is_over();
-        }
-
+    async fn message(&self, ctx: Context, msg: Message) {
         if msg.content.starts_with("!help") {
             let channel = msg.channel_id;
             channel
                 .say(&ctx.http, "To start a story type something like \"!play 30\", where \"30\" is the number of seconds each voting round should last.".to_string())
+                .await
                 .expect("Could not send help text");
         }
 
@@ -70,36 +67,34 @@ impl<'a> EventHandler for Handler<'a> {
                 }
             }
 
-            while !is_over {
-                let mut text = "".into();
-                let mut approved_emoji = vec![];
-
+            while !self.game.lock().unwrap().is_over() {
                 // Get list of choice options
-                if let Ok(game) = self.game.lock() {
-                    text = (game.lines_as_text()).clone();
+                let text = (self.game.lock().unwrap().lines_as_text()).clone();
 
-                    approved_emoji = game.choices_as_strings();
-                    dbg!(&approved_emoji); // TODO: this is wrong. Why?
-                }
+                let approved_emoji = self.game.lock().unwrap().choices_as_strings();
+                dbg!(&approved_emoji); // TODO: this is wrong. Why?
+                let b = self.game.lock().unwrap().lines_and_tags();
+                let images = b
+                    .into_iter()
+                    .map(|(_, tags)| tags)
+                    .flatten()
+                    .map(|s| s /*.as_str()*/)
+                    .collect();
 
-                let choice = self.do_story_beat(&ctx, &msg, &text, &approved_emoji, countdown_time);
+                let choice = self
+                    .do_story_beat(&ctx, &msg, &text, &images, &approved_emoji, countdown_time)
+                    .await;
                 dbg!(&choice);
 
-                is_over = true;
-                if let Ok(mut game) = self.game.lock() {
-                    game.choose_by_emoji(&choice);
-
-                    is_over = game.is_over();
-                }
+                self.game.lock().unwrap().choose_by_emoji(&choice);
             }
 
-            if let Ok(game) = self.game.lock() {
-                let text = game.lines_as_text();
-                let channel = msg.channel_id;
-                channel
-                    .say(&ctx.http, text + &"\nEND.".to_string())
-                    .expect("Could not send next initial text");
-            }
+            let text = self.game.lock().unwrap().lines_as_text();
+            let channel = msg.channel_id;
+            channel
+                .say(&ctx.http, text + &"\nEND.".to_string())
+                .await
+                .expect("Could not send next initial text");
 
             dbg!("STORY IS OVER NOW");
         } else if msg.content == "!continue" {
@@ -107,17 +102,19 @@ impl<'a> EventHandler for Handler<'a> {
         }
     }
 
-    fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
     }
 }
 
 impl<'a> Handler<'a> {
-    fn do_story_beat(
+    // TODO: should this take in the whole story instead of just bits? Or get it from self or something?
+    async fn do_story_beat(
         &self,
         ctx: &Context,
         msg: &Message,
         text: &str,
+        images: &Vec<String>, // TODO: make this more generic
         approved_emoji: &[String],
         countdown: u32,
     ) -> String {
@@ -125,21 +122,45 @@ impl<'a> Handler<'a> {
         let mut countdown = countdown as i32;
         let countdown_increment: i32 = 5;
 
+        dbg!(images);
+
+        //let f1 = File::open("my_file.jpg").unwrap();
+        //let f2 = File::open("my_file.jpg").unwrap();
+        //let files = vec![(&f1, "my_file.jpg"), (&f2, "my_file2.jpg")];
+        //let files: Vec<_> = images
+        //    .iter()
+        //    .map(|f| {
+        //        dbg!();
+        //        let path = Path::new(f);
+        //        (
+        //            &File::open(path).unwrap(),
+        //            path.file_name().unwrap().to_str().unwrap(),
+        //        )
+        //    })
+        //    .collect();
+
+        //let _ = channel.send_files(&ctx, &files, |m| {
+        //    m.content("a file");
+        //    todo!()
+        //});
+
         let mut message = channel
             //.send_files()
             .say(
                 &ctx.http,
                 text.to_string() + &format!("\n({}s remaining)", countdown),
             )
+            .await
             .expect("Could not send next initial text");
 
-        dbg!(msg.unpin(ctx)); // TODO: docs, saying that Manage Messages is required
-        dbg!(message.pin(ctx));
+        dbg!(msg.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
+        dbg!(message.pin(ctx).await);
 
         // React to self with options
         for emoji in approved_emoji {
             message
                 .react(ctx, ReactionType::Unicode(emoji.into()))
+                .await
                 .expect("could not react to message");
         }
 
@@ -153,6 +174,7 @@ impl<'a> Handler<'a> {
                 .edit(ctx, |m| {
                     m.content(text.to_string() + &format!("\n({}s remaining)", countdown))
                 })
+                .await
                 .expect("could not edit");
         }
 
