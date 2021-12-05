@@ -124,28 +124,18 @@ impl<'a> Handler<'a> {
 
         dbg!(images);
 
-        //let f1 = File::open("my_file.jpg").unwrap();
-        //let f2 = File::open("my_file.jpg").unwrap();
-        //let files = vec![(&f1, "my_file.jpg"), (&f2, "my_file2.jpg")];
-        //let files: Vec<_> = images
-        //    .iter()
-        //    .map(|f| {
-        //        dbg!();
-        //        let path = Path::new(f);
-        //        (
-        //            &File::open(path).unwrap(),
-        //            path.file_name().unwrap().to_str().unwrap(),
-        //        )
-        //    })
-        //    .collect();
+        let paths = vec!["img/castle_lowres.jpg"];
 
-        //let _ = channel.send_files(&ctx, &files, |m| {
-        //    m.content("a file");
-        //    todo!()
-        //});
+        let b = channel
+            .send_files(&ctx, paths, |m| {
+                dbg!("SENDING A FILE");
+                m.content("a file")
+            })
+            .await
+            .unwrap();
+        dbg!(b);
 
         let mut message = channel
-            //.send_files()
             .say(
                 &ctx.http,
                 text.to_string() + &format!("\n({}s remaining)", countdown),
