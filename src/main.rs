@@ -18,9 +18,8 @@ use discord_bot::Game;
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
 // TODO: maybe if it's a single letter, we can find the emoji version of that letter?
 // TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
-// TODO: an option to attach photos
-// TODO: an option to attach audio
-// TODO: an option to attach video
+
+// TODO: say what the previous choice was (as long as it's not in []s, of course)
 
 #[tokio::main]
 async fn main() {

@@ -8,4 +8,4 @@ Goals:
 - [ ] emoji validation
 - [ ] variables
 - [ ] restart from the middle
-- [ ] images
+- [x] images and other attachments
