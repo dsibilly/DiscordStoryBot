@@ -70,19 +70,13 @@ impl<'a> EventHandler for Handler<'a> {
             while !self.game.lock().unwrap().is_over() {
                 // Get list of choice options
                 let text = (self.game.lock().unwrap().lines_as_text()).clone();
-
                 let approved_emoji = self.game.lock().unwrap().choices_as_strings();
-                dbg!(&approved_emoji); // TODO: this is wrong. Why?
-                let b = self.game.lock().unwrap().lines_and_tags();
-                let images = b
-                    .into_iter()
-                    .map(|(_, tags)| tags)
-                    .flatten()
-                    .map(|s| s /*.as_str()*/)
-                    .collect();
+
+                let images: Vec<String> = self.game.lock().unwrap().images();
+                dbg!(&images);
 
                 let choice = self
-                    .do_story_beat(&ctx, &msg, &text, &images, &approved_emoji, countdown_time)
+                    .do_story_beat(&ctx, &msg, &text, images, &approved_emoji, countdown_time)
                     .await;
                 dbg!(&choice);
 
@@ -114,7 +108,7 @@ impl<'a> Handler<'a> {
         ctx: &Context,
         msg: &Message,
         text: &str,
-        images: &Vec<String>, // TODO: make this more generic
+        paths: Vec<String>, // TODO: make this more generic
         approved_emoji: &[String],
         countdown: u32,
     ) -> String {
@@ -122,26 +116,28 @@ impl<'a> Handler<'a> {
         let mut countdown = countdown as i32;
         let countdown_increment: i32 = 5;
 
-        dbg!(images);
+        //dbg!(images);
 
-        let paths = vec!["img/castle_lowres.jpg"];
+        //let paths = vec!["img/castle_lowres.jpg"];
+        //let paths: Vec<&str> = vec![];
 
-        let b = channel
+        let paths: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+
+        // always use send_files, because we can send it no files, and that's fine for a normal message it seems
+        let mut message = channel
             .send_files(&ctx, paths, |m| {
-                dbg!("SENDING A FILE");
-                m.content("a file")
+                m.content(text.to_string() + &format!("\n({}s remaining)", countdown))
             })
             .await
-            .unwrap();
-        dbg!(b);
+            .expect(&format!("Could not send message {}", &text));
 
-        let mut message = channel
-            .say(
-                &ctx.http,
-                text.to_string() + &format!("\n({}s remaining)", countdown),
-            )
-            .await
-            .expect("Could not send next initial text");
+        //let mut message = channel
+        //    .say(
+        //        &ctx.http,
+        //        text.to_string() + &format!("\n({}s remaining)", countdown),
+        //    )
+        //    .await
+        //    .expect("Could not send next initial text");
 
         dbg!(msg.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
         dbg!(message.pin(ctx).await);

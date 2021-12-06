@@ -1,7 +1,6 @@
 #![deny(rust_2018_idioms)]
 
 use ink_runner::ink_runner::StoryRunner;
-use std::ffi::OsString;
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
@@ -66,14 +65,23 @@ impl<'a> Game<'a> {
     pub fn lines_and_tags(&self) -> Vec<(String, Vec<String>)> {
         self.lines_with_tags.clone()
     }
+
+    pub fn images(&self) -> Vec<String> {
+        self.lines_and_tags()
+            .into_iter()
+            .map(|(_, tags)| tags)
+            .flatten()
+            .filter_map(|s| get_img_tag_image(&s))
+            .collect()
+    }
 }
 
-pub fn get_img_tag_image(tag: &str) -> Box<OsString> {
-    if let Some(path) = tag.strip_prefix("#img:") {
-        return Box::new(path.into());
+pub fn get_img_tag_image(tag: &str) -> Option<String> {
+    if let Some(path) = tag.strip_prefix("img:") {
+        Some("img/".to_string() + path.trim())
+    } else {
+        None
     }
-
-    todo!()
 }
 
 #[cfg(test)]
