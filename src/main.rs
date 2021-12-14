@@ -3,12 +3,12 @@
 // TODO: instructions when the bot starts up?
 // TODO: rename to Discord Story Bot
 // TODO: the .exe should take in the token (client id), and story file.
+// TODO: the .exe should also take in the knot to start, or a saved state
 // TODO: set which hours the bot is allowed to run
-// TODO: if a choice starts with an emoji, allow that as a choice option (and display the options)
 // TODO: only one story active at a time
 // TODO: allow starting a new story if no story is active
 // TODO: choose story beat time in tags
-// TODO: set the prefix to whatever they want
+// TODO: set the prefix to whatever they want /help +help =help, etc.
 
 use std::cmp::min;
 use std::collections::BTreeMap;
@@ -32,6 +32,7 @@ use unicode_segmentation::UnicodeSegmentation;
 // TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
 
 // TODO: say what the previous choice was (as long as it's not in []s, of course)
+// TODO: and support having the emoji within []'s
 
 #[tokio::main]
 async fn main() {
