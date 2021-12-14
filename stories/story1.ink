@@ -3,16 +3,6 @@ VAR health = 100
 
 Location: The great castle of ooooooom #img:castle_lowres.jpg
 Residence of Monsieur Phileas Fogg.
-`😵`
-`/\`
-` |`
-`/ \`
-```
-😵
-/\
- |
-/ \
-```
 -> downtown
 
 == downtown
@@ -33,12 +23,12 @@ health: "{health}"
 # tag 4
 "Passepartout," said he. "We are going around the world!" #tag 3
 
-* 🧔🏿‍♂️
+* 🧔🏿‍♂️ - nod really well
     -> nod
-* ❤
+* ❤ - be astonished
     I was utterly astonished.
     -> astonished
-* 🙂 -> nod
+* 🙂 - nod -> nod
 
 
 === astonished ===

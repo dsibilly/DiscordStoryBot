@@ -173,6 +173,7 @@ dependencies = [
  "ink_runner",
  "serenity",
  "tokio",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -1090,6 +1091,12 @@ checksum = "09c8070a9942f5e7cfccd93f490fdebd230ee3c3c9f107cb25bad5351ef671cf"
 dependencies = [
  "smallvec",
 ]
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8895849a949e7845e06bd6dc1aa51731a103c42707010a5b591c0038fb73385b"
 
 [[package]]
 name = "unicode-xid"

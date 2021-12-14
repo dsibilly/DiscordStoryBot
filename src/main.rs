@@ -1,5 +1,15 @@
 #![deny(rust_2018_idioms)]
 
+// TODO: instructions when the bot starts up?
+// TODO: rename to Discord Story Bot
+// TODO: the .exe should take in the token (client id), and story file.
+// TODO: set which hours the bot is allowed to run
+// TODO: if a choice starts with an emoji, allow that as a choice option (and display the options)
+// TODO: only one story active at a time
+// TODO: allow starting a new story if no story is active
+// TODO: choose story beat time in tags
+// TODO: set the prefix to whatever they want
+
 use std::cmp::min;
 use std::collections::BTreeMap;
 use std::sync::Mutex;
@@ -14,6 +24,8 @@ use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
 use discord_bot::Game;
+
+use unicode_segmentation::UnicodeSegmentation;
 
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
 // TODO: maybe if it's a single letter, we can find the emoji version of that letter?
@@ -69,13 +81,29 @@ impl<'a> EventHandler for Handler<'a> {
             while !self.game.lock().unwrap().is_over() {
                 // Get list of choice options
                 let text = (self.game.lock().unwrap().lines_as_text()).clone();
-                let approved_emoji = self.game.lock().unwrap().choices_as_strings();
+                let choices = self.game.lock().unwrap().choices_as_strings();
+
+                let text = text + "\n\n" + &choices.join("\n");
+
+                // only the first grapheme, so we get just the emoji at the start
+                let approved_emoji = choices
+                    .iter()
+                    .map(|s| s.graphemes(true).nth(0).unwrap().to_string())
+                    .collect::<Vec<_>>();
 
                 let images: Vec<String> = self.game.lock().unwrap().images();
                 dbg!(&images);
 
                 let choice = self
-                    .do_story_beat(&ctx, &msg, &text, images, &approved_emoji, countdown_time)
+                    .do_story_beat(
+                        &ctx,
+                        &msg,
+                        &text,
+                        images,
+                        &approved_emoji,
+                        &choices,
+                        countdown_time,
+                    )
                     .await;
                 dbg!(&choice);
 
@@ -109,6 +137,7 @@ impl<'a> Handler<'a> {
         text: &str,
         paths: Vec<String>, // TODO: make this more generic
         approved_emoji: &[String],
+        choices: &[String],
         countdown: u32,
     ) -> String {
         let channel = msg.channel_id;
@@ -129,14 +158,6 @@ impl<'a> Handler<'a> {
             })
             .await
             .expect(&format!("Could not send message {}", &text));
-
-        //let mut message = channel
-        //    .say(
-        //        &ctx.http,
-        //        text.to_string() + &format!("\n({}s remaining)", countdown),
-        //    )
-        //    .await
-        //    .expect("Could not send next initial text");
 
         dbg!(msg.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
         dbg!(message.pin(ctx).await);
@@ -173,11 +194,17 @@ impl<'a> Handler<'a> {
         }
 
         // Return the winning emoji
-        counts
+        let winning_emoji = counts
             .iter()
             .max_by_key(|a| a.1)
             .expect("No emoji was chosen, not even by the bot")
             .0
-            .to_owned()
+            .to_owned();
+
+        choices
+            .iter()
+            .find(|s| s.starts_with(&winning_emoji))
+            .unwrap()
+            .to_string()
     }
 }
