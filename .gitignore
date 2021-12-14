@@ -2,6 +2,7 @@
 stale_outputs_checked
 
 # Shh
+client_ids
 client_id.txt
 
 # Logs

@@ -36,7 +36,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 #[tokio::main]
 async fn main() {
-    let token = include_str!("../client_id.txt").trim();
+    let token = include_str!("../client_ids/client_id.txt").trim();
 
     let game = Game::new(include_str!("../stories/story1.ink"));
 
