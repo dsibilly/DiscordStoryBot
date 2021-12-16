@@ -7,5 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serenity = "0.8.1"
-inkling = {git = "https://github.com/MattWoelk/inkling.git", branch = "threading"}
+serenity = { version = "0.10.9", default-features = false, features = ["client", "gateway", "rustls_backend", "model"] }
+ink_runner = { path = "../rust/inkparserchumsky"}
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+unicode-segmentation = "1.8.0"
+structopt = "0.3.25"

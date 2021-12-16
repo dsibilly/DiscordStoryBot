@@ -1,99 +1,93 @@
-use inkling::read_story_from_string;
-use inkling::InklingError;
-use inkling::LineBuffer;
-use inkling::Prompt;
-use inkling::Story;
+#![deny(rust_2018_idioms)]
+
+use ink_runner::ink_runner::StoryRunner;
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
-pub struct Game {
-    lines: LineBuffer,
-    pub story: Story,
-    choices: Prompt,
+pub struct Game<'a> {
+    runner: StoryRunner<'a>,
+    lines_2: Vec<String>,
+    lines_with_tags: Vec<(String, Vec<String>)>,
+    choices_2: Vec<String>,
 }
 
-impl Game {
-    pub fn new(content: &str) -> Result<Self, InklingError> {
+impl<'a> Game<'a> {
+    pub fn new(content: &str, knot: Option<String>) -> Self {
         let mut me = Game {
-            lines: Vec::new(),
-            story: read_story_from_string(content).unwrap(),
-            choices: Prompt::Done,
+            runner: StoryRunner::build_from_str(content),
+            lines_2: vec![],
+            lines_with_tags: vec![],
+            choices_2: vec![],
         };
 
-        me.story.start()?;
-        me.choices = me.story.resume(&mut me.lines)?;
+        me.runner.set_knot(&match knot {
+            Some(title) => title,
+            None => "__INTRO__".to_string(),
+        });
 
-        Ok(me)
+        me.lines_2 = me
+            .runner
+            .start()
+            .into_iter()
+            .map(|l| l.text.to_string())
+            .collect();
+        me.lines_with_tags = me
+            .runner
+            .start()
+            .into_iter()
+            .map(|l| {
+                (
+                    l.text.to_string(),
+                    l.tags.into_iter().map(|x| x.to_string()).collect(),
+                )
+            })
+            .collect();
+        me.choices_2 = me.runner.get_options();
+
+        // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
+
+        me
     }
 
     pub fn choose_by_emoji(&mut self, emoji: &str) {
-        let index = self
-            .choices_as_strings()
-            .iter()
-            .position(|s| s == emoji)
-            .expect("emoji choice was somehow not found...");
-        self.choose_by_index(index)
-            .expect("Choice was not possible");
-    }
-
-    pub fn choose_by_index(&mut self, i: usize) -> Result<(), InklingError> {
-        self.lines.clear();
-        self.story.make_choice(i)?;
-        self.choices = self.story.resume(&mut self.lines)?;
-        Ok(())
-    }
-
-    pub fn choose(&mut self, emoji: &str) -> Option<()> {
-        let choices = self.choices_as_strings();
-        let index = choices.iter().position(|x| x == emoji);
-
-        if let Some(index) = index {
-            self.choose_by_index(index).unwrap();
-            Some(())
-        } else {
-            None
-        }
+        let lines = self.runner.step(emoji);
+        self.lines_2 = lines.into_iter().map(|l| l.text.to_string()).collect();
+        self.choices_2 = self.runner.get_options();
     }
 
     pub fn lines_as_text(&self) -> String {
-        self.lines
-            .iter()
-            .map(|s| &s.text)
-            .cloned()
-            .collect::<Vec<String>>()
-            .join("\n")
+        self.lines_2.join("\n")
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {
-        if !self.is_over() {
-            self.choices
-                .get_choices()
-                .unwrap()
-                .iter()
-                .map(|e| e.text.clone())
-                .collect()
-        } else {
-            vec![]
-        }
+        self.choices_2.clone()
     }
 
     pub fn is_over(&self) -> bool {
-        if let Prompt::Choice(_) = self.choices {
-            false
-        } else {
-            true
-        }
+        self.choices_2.is_empty()
     }
 
-    pub fn tags(&self) -> Vec<String> {
-        let mut tags = vec![];
-
-        for x in self.lines.clone() {
-            tags.extend(x.tags.clone());
-        }
-
-        tags
+    pub fn lines_and_tags(&self) -> Vec<(String, Vec<String>)> {
+        self.lines_with_tags.clone()
     }
+
+    pub fn images(&self) -> Vec<String> {
+        self.lines_and_tags()
+            .into_iter()
+            .map(|(_, tags)| tags)
+            .flatten()
+            .filter_map(|s| get_img_tag_image(&s))
+            .collect()
+    }
+
+    pub fn set_knot(&mut self, knot: &str) {
+        self.runner.set_knot(knot);
+    }
+}
+
+pub fn get_img_tag_image(tag: &str) -> Option<String> {
+    tag.strip_prefix("img:")
+        .map(|path| "img/".to_string() + path.trim())
 }
 
 #[cfg(test)]
@@ -105,13 +99,11 @@ mod tests {
     fn basic_story() {
         let mut game = Game::new(include_str!("../stories/basic_story.ink")).expect("wut");
         dbg!(&game.lines_as_text());
-        dbg!(&game.tags());
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
 
         dbg!(game.choose_by_index(0));
         dbg!(&game.lines_as_text());
-        dbg!(&game.tags());
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
 
