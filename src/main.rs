@@ -1,17 +1,17 @@
 #![deny(rust_2018_idioms)]
+#![allow(clippy::too_many_arguments, clippy::expect_fun_call)]
 
-// TODO: instructions when the bot starts up?
 // TODO: rename to Discord Story Bot
-// TODO: the .exe should take in the token (client id), and story file.
-// TODO: the .exe should also take in the knot to start, or a saved state
 // TODO: set which hours the bot is allowed to run
 // TODO: only one story active at a time
 // TODO: allow starting a new story if no story is active
 // TODO: choose story beat time in tags
-// TODO: set the prefix to whatever they want /help +help =help, etc.
+// TODO: save the state whenever it changes, and be able to load it up again
 
 use std::cmp::min;
 use std::collections::BTreeMap;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
@@ -23,9 +23,31 @@ use serenity::model::channel::ReactionType;
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
+use structopt::StructOpt;
+
 use discord_bot::Game;
 
 use unicode_segmentation::UnicodeSegmentation;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "Discord Story Bot", about = "about: TODO")]
+struct Opt {
+    /// client token file path
+    #[structopt(parse(from_os_str))]
+    token_file: PathBuf,
+
+    /// .ink story file path
+    #[structopt(parse(from_os_str))]
+    story: PathBuf,
+
+    /// Optional saved state file to load.
+    #[structopt(parse(from_os_str))]
+    state: Option<PathBuf>, // TODO: use this
+
+    /// Optional knot to start with (can be used with state, but not required). Default is the beginning.
+    #[structopt(short, long)]
+    knot: Option<String>, // TODO: use this
+}
 
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
 // TODO: maybe if it's a single letter, we can find the emoji version of that letter?
@@ -36,13 +58,18 @@ use unicode_segmentation::UnicodeSegmentation;
 
 #[tokio::main]
 async fn main() {
-    let token = include_str!("../client_ids/client_id.txt").trim();
+    let opt: Opt = Opt::from_args();
+    println!("{:#?}", opt);
 
-    let game = Game::new(include_str!("../stories/story1.ink"));
+    let story = fs::read_to_string(opt.story).unwrap();
+    let token = fs::read_to_string(opt.token_file).unwrap();
+
+    let game = Game::new(&story, opt.knot);
 
     let mut client = Client::builder(token)
         .event_handler(Handler {
             game: Mutex::new(game),
+            prefix: Mutex::new("!".to_string()),
         })
         .await
         .expect("Error creating client");
@@ -54,20 +81,53 @@ async fn main() {
 
 struct Handler<'a> {
     game: Mutex<Game<'a>>,
+    prefix: Mutex<String>,
 }
 
 #[async_trait]
 impl<'a> EventHandler for Handler<'a> {
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content.starts_with("!help") {
+        let prefix = self.prefix.lock().unwrap().clone();
+
+        if msg.content.starts_with(&(prefix.to_string() + "help")) {
             let channel = msg.channel_id;
             channel
-                .say(&ctx.http, "To start a story type something like \"!play 30\", where \"30\" is the number of seconds each voting round should last.".to_string())
+                .say(&ctx.http, "To start a story type something like \"".to_string() + &prefix + "play 30\", where \"30\" is the number of seconds each voting round should last.")
                 .await
                 .expect("Could not send help text");
         }
 
-        if msg.content.starts_with("!play") {
+        if msg.content.starts_with(&(prefix.to_string() + "prefix")) {
+            let channel = msg.channel_id;
+            if msg.content.contains(' ') {
+                {
+                    let mut prefix_locked = self.prefix.lock().unwrap();
+                    *prefix_locked = msg.content.split_once(' ').unwrap().1.to_string();
+                }
+
+                channel
+                    .say(
+                        &ctx.http,
+                        "prefix has been set to: ".to_string() + &prefix.clone(),
+                    )
+                    .await
+                    .expect("Could not send prefix information text");
+            } else {
+                channel
+                    .say(
+                        &ctx.http,
+                        "To set a different prefix, type something like \"".to_string()
+                            + &prefix
+                            + "prefix +\", where \"+\" is the new prefix to use, instead of \""
+                            + &prefix
+                            + "\".",
+                    )
+                    .await
+                    .expect("Could not send prefix information text");
+            }
+        }
+
+        if msg.content.starts_with(&(prefix.to_string() + "play")) {
             let mut countdown_time = 5;
 
             // Parse a number if we got one after "play "
@@ -89,7 +149,7 @@ impl<'a> EventHandler for Handler<'a> {
                 // only the first grapheme, so we get just the emoji at the start
                 let approved_emoji = choices
                     .iter()
-                    .map(|s| s.graphemes(true).nth(0).unwrap().to_string())
+                    .map(|s| s.graphemes(true).next().unwrap().to_string())
                     .collect::<Vec<_>>();
 
                 let images: Vec<String> = self.game.lock().unwrap().images();
@@ -119,7 +179,9 @@ impl<'a> EventHandler for Handler<'a> {
                 .expect("Could not send next initial text");
 
             dbg!("STORY IS OVER NOW");
-        } else if msg.content == "!continue" {
+        }
+
+        if msg.content == (prefix.to_string() + "continue") {
             println!("huh?!");
         }
     }
