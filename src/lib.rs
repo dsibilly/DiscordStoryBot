@@ -12,13 +12,18 @@ pub struct Game<'a> {
 }
 
 impl<'a> Game<'a> {
-    pub fn new(content: &str) -> Self {
+    pub fn new(content: &str, knot: Option<String>) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
             lines_2: vec![],
             lines_with_tags: vec![],
             choices_2: vec![],
         };
+
+        me.runner.set_knot(&match knot {
+            Some(title) => title,
+            None => "__INTRO__".to_string(),
+        });
 
         me.lines_2 = me
             .runner
@@ -51,7 +56,7 @@ impl<'a> Game<'a> {
     }
 
     pub fn lines_as_text(&self) -> String {
-        return self.lines_2.join("\n");
+        self.lines_2.join("\n")
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {
@@ -74,14 +79,15 @@ impl<'a> Game<'a> {
             .filter_map(|s| get_img_tag_image(&s))
             .collect()
     }
+
+    pub fn set_knot(&mut self, knot: &str) {
+        self.runner.set_knot(knot);
+    }
 }
 
 pub fn get_img_tag_image(tag: &str) -> Option<String> {
-    if let Some(path) = tag.strip_prefix("img:") {
-        Some("img/".to_string() + path.trim())
-    } else {
-        None
-    }
+    tag.strip_prefix("img:")
+        .map(|path| "img/".to_string() + path.trim())
 }
 
 #[cfg(test)]
