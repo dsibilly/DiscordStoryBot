@@ -1,0 +1,11 @@
+[package]
+edition = "2021"
+name = "ink_runner"
+version = "0.1.0"
+
+[dependencies]
+ron = "0.7.0"
+serde = "1.*"
+
+[dev-dependencies]
+pretty_assertions = "1.0"
