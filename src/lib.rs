@@ -49,7 +49,7 @@ impl<'a> Game<'a> {
         me
     }
 
-    pub fn choose_by_emoji(&mut self, emoji: &str) {
+    pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
         self.lines_2 = lines.into_iter().map(|l| l.text.to_string()).collect();
         self.choices_2 = self.runner.get_options();
@@ -97,15 +97,14 @@ mod tests {
 
     #[test]
     fn basic_story() {
-        let mut game = Game::new(include_str!("../stories/basic_story.ink")).expect("wut");
+        let mut game = Game::new(include_str!("../stories/basic_story.ink"), None);
         dbg!(&game.lines_as_text());
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
 
-        dbg!(game.choose_by_index(0));
+        dbg!(game.choose("downtown?"));
         dbg!(&game.lines_as_text());
         dbg!(&game.choices_as_strings());
-        dbg!(&game.is_over());
 
         assert_eq!(true, game.is_over());
     }

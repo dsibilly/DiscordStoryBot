@@ -25,7 +25,7 @@ use serenity::prelude::{Context, EventHandler};
 
 use structopt::StructOpt;
 
-use discord_bot::Game;
+use discord_story_bot::Game;
 
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -168,7 +168,7 @@ impl<'a> EventHandler for Handler<'a> {
                     .await;
                 dbg!(&choice);
 
-                self.game.lock().unwrap().choose_by_emoji(&choice);
+                self.game.lock().unwrap().choose(&choice);
             }
 
             let text = self.game.lock().unwrap().lines_as_text();
