@@ -15,6 +15,7 @@ pub struct Game<'a> {
 #[derive(Default)]
 struct GameConfig {
     hide_choices: bool,
+    do_not_pin: bool,
 }
 
 impl<'a> Game<'a> {
@@ -62,6 +63,11 @@ impl<'a> Game<'a> {
         me
     }
 
+    pub fn set_do_not_pin(mut self, do_not_pin: bool) -> Self {
+        self.config.do_not_pin = do_not_pin;
+        self
+    }
+
     pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
         self.lines = lines.into_iter().map(|l| l.text.to_string()).collect();
@@ -82,6 +88,10 @@ impl<'a> Game<'a> {
 
     pub fn lines_and_tags(&self) -> Vec<(String, Vec<String>)> {
         self.lines_with_tags.clone()
+    }
+
+    pub fn do_not_pin(&self) -> bool {
+        self.config.do_not_pin
     }
 
     pub fn should_hide_choices(&self) -> bool {
