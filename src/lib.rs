@@ -6,18 +6,18 @@ use ink_runner::ink_runner::StoryRunner;
 /// while choices aren't Prompt::Done, there is still more story left.
 pub struct Game<'a> {
     runner: StoryRunner<'a>,
-    lines_2: Vec<String>,
+    lines: Vec<String>,
     lines_with_tags: Vec<(String, Vec<String>)>,
-    choices_2: Vec<String>,
+    choices: Vec<String>,
 }
 
 impl<'a> Game<'a> {
     pub fn new(content: &str, knot: Option<String>) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
-            lines_2: vec![],
+            lines: vec![],
             lines_with_tags: vec![],
-            choices_2: vec![],
+            choices: vec![],
         };
 
         me.runner.set_knot(&match knot {
@@ -25,12 +25,6 @@ impl<'a> Game<'a> {
             None => "__INTRO__".to_string(),
         });
 
-        me.lines_2 = me
-            .runner
-            .start()
-            .into_iter()
-            .map(|l| l.text.to_string())
-            .collect();
         me.lines_with_tags = me
             .runner
             .start()
@@ -42,7 +36,12 @@ impl<'a> Game<'a> {
                 )
             })
             .collect();
-        me.choices_2 = me.runner.get_options();
+        me.lines = me
+            .lines_and_tags()
+            .iter()
+            .map(|(line, _)| line.to_string())
+            .collect();
+        me.choices = me.runner.get_options();
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
 
@@ -51,20 +50,20 @@ impl<'a> Game<'a> {
 
     pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
-        self.lines_2 = lines.into_iter().map(|l| l.text.to_string()).collect();
-        self.choices_2 = self.runner.get_options();
+        self.lines = lines.into_iter().map(|l| l.text.to_string()).collect();
+        self.choices = self.runner.get_options();
     }
 
     pub fn lines_as_text(&self) -> String {
-        self.lines_2.join("\n")
+        self.lines.join("\n")
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {
-        self.choices_2.clone()
+        self.choices.clone()
     }
 
     pub fn is_over(&self) -> bool {
-        self.choices_2.is_empty()
+        self.choices.is_empty()
     }
 
     pub fn lines_and_tags(&self) -> Vec<(String, Vec<String>)> {
@@ -86,6 +85,7 @@ impl<'a> Game<'a> {
 }
 
 pub fn get_img_tag_image(tag: &str) -> Option<String> {
+    dbg!(tag);
     tag.strip_prefix("img:")
         .map(|path| "img/".to_string() + path.trim())
 }
