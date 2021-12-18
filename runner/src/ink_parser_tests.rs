@@ -712,3 +712,27 @@ fn parse_choices_with_hidden_text() {
         }
     );
 }
+
+#[test]
+fn parse_top_level_tag() {
+    let string = strip_comments("# tag_is_here\n\n\nstarted\n\n\n-> END");
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed,
+        InkStory {
+            global_variables_and_constants: BTreeMap::new(),
+            knots: BTreeMap::from([(
+                "__INTRO__".to_string(),
+                Knot {
+                    title: "__INTRO__".to_string(),
+                    lines: vec!["started".into()],
+                    end: KnotEnd::Divert("END".into()),
+                    knot_tags: vec![]
+                }
+            ),]),
+            global_tags: vec!["tag_is_here".into()]
+        }
+    );
+}

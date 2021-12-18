@@ -46,7 +46,7 @@ struct Opt {
 
     /// Optional knot to start with (can be used with state, but not required). Default is the beginning.
     #[structopt(short, long)]
-    knot: Option<String>, // TODO: use this
+    knot: Option<String>,
 }
 
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
@@ -141,10 +141,12 @@ impl<'a> EventHandler for Handler<'a> {
 
             while !self.game.lock().unwrap().is_over() {
                 // Get list of choice options
-                let text = (self.game.lock().unwrap().lines_as_text()).clone();
+                let mut text = (self.game.lock().unwrap().lines_as_text()).clone();
                 let choices = self.game.lock().unwrap().choices_as_strings();
 
-                let text = text + "\n\n" + &choices.join("\n");
+                if !self.game.lock().unwrap().should_hide_choices() {
+                    text = text + "\n\n" + &choices.join("\n");
+                }
 
                 // only the first grapheme, so we get just the emoji at the start
                 let approved_emoji = choices
@@ -269,5 +271,15 @@ impl<'a> Handler<'a> {
             .find(|s| s.starts_with(&winning_emoji))
             .unwrap()
             .to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //use super::*;
+
+    #[test]
+    fn basic_story() {
+        // TODO: split up the code above so the pieces of it are testable.
     }
 }

@@ -9,6 +9,12 @@ pub struct Game<'a> {
     lines: Vec<String>,
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
+    config: GameConfig,
+}
+
+#[derive(Default)]
+struct GameConfig {
+    hide_choices: bool,
 }
 
 impl<'a> Game<'a> {
@@ -18,6 +24,7 @@ impl<'a> Game<'a> {
             lines: vec![],
             lines_with_tags: vec![],
             choices: vec![],
+            config: Default::default(),
         };
 
         me.runner.set_knot(&match knot {
@@ -42,6 +49,13 @@ impl<'a> Game<'a> {
             .map(|(line, _)| line.to_string())
             .collect();
         me.choices = me.runner.get_options();
+
+        me.config.hide_choices = me
+            .runner
+            .story
+            .global_tags
+            .iter()
+            .any(|&s| is_hide_choices_tag(s));
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
 
@@ -70,6 +84,10 @@ impl<'a> Game<'a> {
         self.lines_with_tags.clone()
     }
 
+    pub fn should_hide_choices(&self) -> bool {
+        self.config.hide_choices
+    }
+
     pub fn images(&self) -> Vec<String> {
         self.lines_and_tags()
             .into_iter()
@@ -90,8 +108,12 @@ pub fn get_img_tag_image(tag: &str) -> Option<String> {
         .map(|path| "img/".to_string() + path.trim())
 }
 
+pub fn is_hide_choices_tag(tag: &str) -> bool {
+    dbg!(tag);
+    tag == "hide_choices"
+}
+
 #[cfg(test)]
-#[allow(unused)] // TODO: Delete This
 mod tests {
     use super::*;
 
@@ -107,5 +129,13 @@ mod tests {
         dbg!(&game.choices_as_strings());
 
         assert_eq!(true, game.is_over());
+    }
+
+    #[test]
+    fn hide_choices() {
+        let game = Game::new(include_str!("../stories/basic_story.ink"), None);
+        assert_eq!(game.config.hide_choices, false);
+        let game = Game::new(include_str!("../stories/hide_choices.ink"), None);
+        assert_eq!(game.config.hide_choices, true);
     }
 }
