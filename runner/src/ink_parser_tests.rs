@@ -10,15 +10,7 @@ use pretty_assertions::assert_eq;
 use std::collections::BTreeMap;
 
 fn default_intro_knot() -> (String, Knot<'static>) {
-    (
-        "__INTRO__".to_string(),
-        Knot {
-            title: "__INTRO__".to_string(),
-            lines: vec![],
-            end: KnotEnd::Divert("END".into()),
-            knot_tags: vec![],
-        },
-    )
+    ("__INTRO__".to_string(), Default::default())
 }
 
 fn empty_story_hashmap() -> BTreeMap<String, Knot<'static>> {
@@ -64,10 +56,8 @@ fn full_test() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    title: "__INTRO__".to_string(),
                     lines: vec!["hi".into()],
-                    end: KnotEnd::Divert("END".into()),
-                    knot_tags: vec![]
+                    ..Default::default()
                 }
             ),]),
             global_tags: vec![]
@@ -95,13 +85,12 @@ fn full_test() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        title: "__INTRO__".to_string(),
                         lines: vec![
                             "LONDON, 1872".into(),
                             "Residence of Monsieur Phileas Fogg.".into(),
                         ],
                         end: "paris_downtown".into(),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -112,8 +101,8 @@ fn full_test() {
                             text: "It was cool downtown.",
                             tags: vec!["downtown tag"]
                         })],
-                        end: "END".into(),
-                        knot_tags: vec!["downtown tag"]
+                        knot_tags: vec!["downtown tag"],
+                        ..Default::default()
                     }
                 )
             ]),
@@ -128,16 +117,11 @@ fn full_test() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    title: "__INTRO__".to_string(),
-                    lines: vec![],
                     end: KnotEnd::Choices(vec![ink_parser::Choice {
                         text: "go",
-                        show_text: true,
-                        lines: vec![],
-                        divert: "END".into(),
-                        sticky: false,
+                        ..Default::default()
                     }]),
-                    knot_tags: vec![]
+                    ..Default::default()
                 }
             ),]),
             global_tags: vec![]
@@ -168,25 +152,17 @@ fn parse_choices() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    title: "__INTRO__".to_string(),
-                    lines: vec![],
                     end: KnotEnd::Choices(vec![
                         ink_parser::Choice {
                             text: "go",
-                            show_text: true,
-                            lines: vec![],
-                            divert: "END".into(),
-                            sticky: false,
+                            ..Default::default()
                         },
                         ink_parser::Choice {
                             text: "stay",
-                            show_text: true,
-                            lines: vec![],
-                            divert: "END".into(),
-                            sticky: false
+                            ..Default::default()
                         }
                     ]),
-                    knot_tags: vec![]
+                    ..Default::default()
                 }
             ),]),
             global_tags: vec![]
@@ -207,10 +183,8 @@ fn parse_london() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        title: "__INTRO__".to_string(),
-                        lines: vec![],
                         end: KnotEnd::Divert("london".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -223,17 +197,14 @@ fn parse_london() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "❤",
-                                show_text: true,
                                 lines: vec!["I was utterly astonished.".into()],
                                 divert: "astonished".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
                                 text: "🙂",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "nod".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                         ]),
                         knot_tags: vec![]
@@ -275,17 +246,14 @@ fn parse_london2() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "heart",
-                                show_text: true,
                                 lines: vec!["huh!?".into()],
                                 divert: "astonished".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
                                 text: "happy",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "END".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                         ]),
                         knot_tags: vec![]
@@ -298,10 +266,7 @@ fn parse_london2() {
                         lines: vec!["wut!".into()],
                         end: KnotEnd::Choices(vec![ink_parser::Choice {
                             text: "sad",
-                            show_text: true,
-                            lines: vec![],
-                            divert: "END".into(),
-                            sticky: false
+                            ..Default::default()
                         },]),
                         knot_tags: vec![]
                     }
@@ -325,13 +290,12 @@ fn parse_image_tag() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        title: "__INTRO__".to_string(),
                         lines: vec![Line::Dialog(DialogLine {
                             text: "Location: The great castle of ooooooom",
                             tags: vec!["img:castle_lowres.jpg"]
                         }),],
                         end: KnotEnd::Divert("space".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -364,10 +328,8 @@ fn parse_global_tags() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    title: "__INTRO__".to_string(),
                     lines: vec!["The story begins...".into()],
-                    end: KnotEnd::Divert("END".into()),
-                    knot_tags: vec![]
+                    ..Default::default()
                 }
             ),]),
             global_tags: vec!["author: Cool Coolman", "title: The Gracious Wizard"]
@@ -393,17 +355,13 @@ fn parse_sticky_options() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "no",
-                                show_text: true,
-                                lines: vec![],
-                                divert: "END".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
                                 text: "yes",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "bears".into(),
-                                sticky: true
+                                sticky: true,
+                                ..Default::default()
                             }
                         ]),
                         knot_tags: vec![]
@@ -416,10 +374,8 @@ fn parse_sticky_options() {
                         lines: vec![],
                         end: KnotEnd::Choices(vec![ink_parser::Choice {
                             text: "yeah",
-                            show_text: true,
-                            lines: vec![],
-                            divert: "END".into(),
-                            sticky: true
+                            sticky: true,
+                            ..Default::default()
                         }]),
                         knot_tags: vec![]
                     }
@@ -444,10 +400,9 @@ fn parse_fallbacks() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        title: "__INTRO__".to_string(),
                         lines: vec!["hey".into()],
                         end: KnotEnd::Divert("fallback".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -458,24 +413,20 @@ fn parse_fallbacks() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "wut",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "fallback".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
                                 text: "wutwut",
-                                show_text: true,
                                 lines: vec!["text".into()],
                                 divert: "fallback".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "",
-                                show_text: true,
                                 lines: vec!["can I put things here?".into()],
                                 divert: "fallback2".into(),
-                                sticky: true
+                                sticky: true,
+                                ..Default::default()
                             }
                         ]),
                         knot_tags: vec![]
@@ -489,17 +440,14 @@ fn parse_fallbacks() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "wut2",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "fallback2".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "END".into(),
-                                sticky: true
+                                sticky: true,
+                                show_text: true,
+                                ..Default::default()
                             }
                         ]),
                         knot_tags: vec![]
@@ -525,19 +473,16 @@ fn parse_stitches() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        title: "__INTRO__".to_string(),
-                        lines: vec![],
                         end: KnotEnd::Divert("train".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
                     "train".to_string(),
                     Knot {
                         title: "train".to_string(),
-                        lines: vec![],
                         end: KnotEnd::Divert("train.first_class".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -546,7 +491,7 @@ fn parse_stitches() {
                         title: "train.first_class".to_string(),
                         lines: vec!["first class".into()],
                         end: KnotEnd::Divert("train.missed_train".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -555,7 +500,7 @@ fn parse_stitches() {
                         title: "train.second_class".to_string(),
                         lines: vec!["second class".into()],
                         end: KnotEnd::Divert("train.missed_train".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -563,8 +508,7 @@ fn parse_stitches() {
                     Knot {
                         title: "train.missed_train".to_string(),
                         lines: vec!["you missed the train".into()],
-                        end: KnotEnd::Divert("END".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 )
             ]),
@@ -587,10 +531,8 @@ fn parse_stitches_with_choices() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        title: "__INTRO__".to_string(),
-                        lines: vec![],
                         end: KnotEnd::Divert("train".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -601,17 +543,12 @@ fn parse_stitches_with_choices() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "cool",
-                                show_text: true,
-                                lines: vec![],
-                                divert: "END".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
                                 text: "uncool",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "train.missed_train".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                         ]),
                         knot_tags: vec![]
@@ -621,9 +558,8 @@ fn parse_stitches_with_choices() {
                     "train".to_string(),
                     Knot {
                         title: "train".to_string(),
-                        lines: vec![],
                         end: KnotEnd::Divert("train.first_class".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -634,17 +570,13 @@ fn parse_stitches_with_choices() {
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
                                 text: "be late",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "train.missed_train".into(),
-                                sticky: false
+                                ..Default::default()
                             },
                             ink_parser::Choice {
                                 text: "be early",
-                                show_text: true,
-                                lines: vec![],
                                 divert: "train.second_class".into(),
-                                sticky: false
+                                ..Default::default()
                             }
                         ]),
                         knot_tags: vec![]
@@ -656,7 +588,7 @@ fn parse_stitches_with_choices() {
                         title: "train.second_class".to_string(),
                         lines: vec!["second class".into()],
                         end: KnotEnd::Divert("train.missed_train".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 ),
                 (
@@ -665,7 +597,7 @@ fn parse_stitches_with_choices() {
                         title: "train.missed_train".to_string(),
                         lines: vec!["you missed the train".into()],
                         end: KnotEnd::Divert("metro".into()),
-                        knot_tags: vec![]
+                        ..Default::default()
                     }
                 )
             ]),
@@ -692,17 +624,14 @@ fn parse_choices_with_hidden_text() {
                     end: KnotEnd::Choices(vec![
                         ink_parser::Choice {
                             text: "Hey",
-                            show_text: true,
                             lines: vec!["I'm Bruce.".into()],
-                            divert: "END".into(),
-                            sticky: false
+                            ..Default::default()
                         },
                         ink_parser::Choice {
                             text: "sup",
-                            show_text: false,
                             lines: vec!["What is up?".into()],
-                            divert: "END".into(),
-                            sticky: false
+                            show_text: false,
+                            ..Default::default()
                         }
                     ]),
                     knot_tags: vec![]
@@ -726,10 +655,8 @@ fn parse_top_level_tag() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    title: "__INTRO__".to_string(),
                     lines: vec!["started".into()],
-                    end: KnotEnd::Divert("END".into()),
-                    knot_tags: vec![]
+                    ..Default::default()
                 }
             ),]),
             global_tags: vec!["tag_is_here".into()]

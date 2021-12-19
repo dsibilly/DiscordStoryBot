@@ -50,6 +50,17 @@ pub struct Knot<'a> {
     pub knot_tags: Vec<&'a str>,
 }
 
+impl<'a> Default for Knot<'a> {
+    fn default() -> Self {
+        Knot {
+            title: "__INTRO__".to_string(),
+            lines: vec![],
+            end: "END".into(),
+            knot_tags: vec![],
+        }
+    }
+}
+
 impl<'a> Knot<'a> {
     fn new(s: &str) -> Self {
         Knot {
@@ -73,7 +84,7 @@ impl<'a> From<&'a str> for KnotEnd<'a> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Choice<'a> {
     pub text: &'a str,
     pub show_text: bool,
@@ -82,9 +93,27 @@ pub struct Choice<'a> {
     pub sticky: bool,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default)]
+impl<'a> Default for Choice<'a> {
+    fn default() -> Self {
+        Choice {
+            text: "",
+            show_text: true,
+            lines: vec![],
+            divert: Default::default(),
+            sticky: false,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Divert {
     pub knot_title: String,
+}
+
+impl Default for Divert {
+    fn default() -> Self {
+        "END".into()
+    }
 }
 
 impl From<&str> for Divert {
