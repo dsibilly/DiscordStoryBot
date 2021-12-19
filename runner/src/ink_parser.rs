@@ -34,7 +34,7 @@ impl<'a> InkStory<'a> {
         let authors: Vec<String> = self
             .global_tags
             .iter()
-            .map(|&t| dbg!(get_author_from_tag(dbg!(t))))
+            .map(|&t| get_author_from_tag(t))
             .filter(|a| a.is_some())
             .map(|a| a.unwrap())
             .collect();
