@@ -5,7 +5,7 @@
 // TODO: 'pause' and 'resume' commands
 // TODO: choose story beat time in tags
 // TODO: save the state whenever it changes, and be able to load it up again
-// TODO: have multiple games available, so if you say !play, it should list them
+// TODO: point to a directory, or auto-import all stories nested within "stories"
 // TODO: set which hours the bot is allowed to run
 
 use std::cmp::min;
