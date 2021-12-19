@@ -7,7 +7,6 @@ use ink_runner::ink_runner::StoryRunner;
 /// while choices aren't Prompt::Done, there is still more story left.
 pub struct Game<'a> {
     runner: StoryRunner<'a>,
-    lines: Vec<String>,
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
     config: GameConfig,
@@ -23,7 +22,6 @@ impl<'a> Game<'a> {
     pub fn new(content: &str, knot: Option<String>) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
-            lines: vec![],
             lines_with_tags: vec![],
             choices: vec![],
             config: Default::default(),
@@ -39,11 +37,6 @@ impl<'a> Game<'a> {
 
     pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
-        self.lines = lines
-            .clone()
-            .into_iter()
-            .map(|l| l.text.to_string())
-            .collect();
         self.lines_with_tags = lines
             .into_iter()
             .map(|l| {
@@ -57,7 +50,11 @@ impl<'a> Game<'a> {
     }
 
     pub fn lines_as_text(&self) -> String {
-        self.lines.join("\n")
+        self.lines_with_tags
+            .iter()
+            .map(|(line, _)| line.to_string())
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {
@@ -116,11 +113,6 @@ impl<'a> Game<'a> {
             })
             .collect();
 
-        self.lines = self
-            .lines_with_tags
-            .iter()
-            .map(|(line, _)| line.to_string())
-            .collect();
         self.choices = self.runner.get_options();
 
         self.config.hide_choices = self

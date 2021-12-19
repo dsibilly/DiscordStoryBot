@@ -35,8 +35,7 @@ impl<'a> InkStory<'a> {
             .global_tags
             .iter()
             .map(|&t| get_author_from_tag(t))
-            .filter(|a| a.is_some())
-            .map(|a| a.unwrap())
+            .flatten()
             .collect();
 
         dbg!(&authors);

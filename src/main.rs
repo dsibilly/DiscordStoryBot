@@ -1,5 +1,9 @@
 #![deny(rust_2018_idioms)]
-#![allow(clippy::too_many_arguments, clippy::expect_fun_call)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::expect_fun_call,
+    clippy::or_fun_call
+)]
 
 // TODO: only one story active at a time
 // TODO: in the story selector, show the authors' names
@@ -113,11 +117,11 @@ impl<'a> EventHandler for Handler<'a> {
             let stories = self.stories.keys().map(|k| k.as_str()).collect::<Vec<_>>();
             let stories_with_authors: Vec<String> = stories
                 .iter()
-                .map(|s| {
+                .map(|&s| {
                     format!(
                         "\"{}\"{}",
                         s,
-                        self.stories[s.clone()]
+                        self.stories[&s.to_string()]
                             .get_author()
                             .map(|a| format!(" by {}", a))
                             .unwrap_or("".to_string())
