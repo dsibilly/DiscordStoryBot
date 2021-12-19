@@ -27,6 +27,28 @@ pub struct InkStory<'a> {
     pub global_tags: Vec<&'a str>,
 }
 
+impl<'a> InkStory<'a> {
+    pub fn get_author(&self) -> Option<String> {
+        dbg!(&self.global_tags);
+
+        let authors: Vec<String> = self
+            .global_tags
+            .iter()
+            .map(|&t| dbg!(get_author_from_tag(dbg!(t))))
+            .filter(|a| a.is_some())
+            .map(|a| a.unwrap())
+            .collect();
+
+        dbg!(&authors);
+
+        if authors.is_empty() {
+            None
+        } else {
+            Some(authors[0].clone())
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct DialogLine<'a> {
     pub text: &'a str,
@@ -444,4 +466,8 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
     }
 
     (choice, index)
+}
+
+pub fn get_author_from_tag(tag: &str) -> Option<String> {
+    tag.strip_prefix("author:").map(|s| s.trim().to_string())
 }

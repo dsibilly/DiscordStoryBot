@@ -1,12 +1,13 @@
 #![deny(rust_2018_idioms)]
 #![allow(clippy::too_many_arguments, clippy::expect_fun_call)]
 
-// TODO: rename to Discord Story Bot
-// TODO: set which hours the bot is allowed to run
 // TODO: only one story active at a time
-// TODO: allow starting a new story if no story is active
+// TODO: in the story selector, show the authors' names
+// TODO: 'pause' and 'resume' commands
 // TODO: choose story beat time in tags
 // TODO: save the state whenever it changes, and be able to load it up again
+// TODO: point to a directory, or auto-import all stories nested within "stories"
+// TODO: set which hours the bot is allowed to run
 
 use std::cmp::min;
 use std::collections::BTreeMap;
@@ -27,6 +28,8 @@ use structopt::StructOpt;
 
 use discord_story_bot::Game;
 
+use ink_runner::ink_parser::InkStory;
+use ink_runner::ink_runner::import_story;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, StructOpt)]
@@ -36,12 +39,12 @@ struct Opt {
     #[structopt(parse(from_os_str))]
     token_file: PathBuf,
 
-    /// .ink story file path
+    /// .ink story file paths
     #[structopt(parse(from_os_str))]
-    story: PathBuf,
+    stories: Vec<PathBuf>,
 
     /// Optional saved state file to load.
-    #[structopt(parse(from_os_str))]
+    #[structopt(short, long, parse(from_os_str))]
     state: Option<PathBuf>, // TODO: use this
 
     /// Optional knot to start with (can be used with state, but not required). Default is the beginning.
@@ -53,39 +56,10 @@ struct Opt {
     do_not_pin: bool,
 }
 
-// TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
-// TODO: maybe if it's a single letter, we can find the emoji version of that letter?
-// TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
-
-// TODO: say what the previous choice was (as long as it's not in []s, of course)
-// TODO: and support having the emoji within []'s
-
-#[tokio::main]
-async fn main() {
-    let opt: Opt = Opt::from_args();
-    println!("{:#?}", opt);
-
-    let story = fs::read_to_string(opt.story).unwrap();
-    let token = fs::read_to_string(opt.token_file).unwrap();
-
-    let game = Game::new(&story, opt.knot).set_do_not_pin(opt.do_not_pin);
-
-    let mut client = Client::builder(token)
-        .event_handler(Handler {
-            game: Mutex::new(game),
-            prefix: Mutex::new("!".to_string()),
-        })
-        .await
-        .expect("Error creating client");
-
-    if let Err(why) = client.start().await {
-        println!("Client error: {:?}", why);
-    }
-}
-
 struct Handler<'a> {
     game: Mutex<Game<'a>>,
     prefix: Mutex<String>,
+    stories: BTreeMap<String, InkStory<'a>>,
 }
 
 #[async_trait]
@@ -105,15 +79,17 @@ impl<'a> EventHandler for Handler<'a> {
         if msg.content.starts_with(&(prefix.to_string() + "prefix")) {
             let channel = msg.channel_id;
             if msg.content.contains(' ') {
+                let new_prefix;
                 {
                     let mut prefix_locked = self.prefix.lock().unwrap();
-                    *prefix_locked = msg.content.split_once(' ').unwrap().1.to_string();
+                    new_prefix = msg.content.split_once(' ').unwrap().1.to_string();
+                    *prefix_locked = new_prefix.clone();
                 }
 
                 channel
                     .say(
                         &ctx.http,
-                        "prefix has been set to: ".to_string() + &prefix.clone(),
+                        "prefix has been set to: ".to_string() + &new_prefix,
                     )
                     .await
                     .expect("Could not send prefix information text");
@@ -133,16 +109,51 @@ impl<'a> EventHandler for Handler<'a> {
         }
 
         if msg.content.starts_with(&(prefix.to_string() + "play")) {
-            let mut countdown_time = 5;
+            //let stories = ["basic_story"];
+            let stories = self.stories.keys().map(|k| k.as_str()).collect::<Vec<_>>();
+            let stories_with_authors: Vec<String> = stories
+                .iter()
+                .map(|s| {
+                    format!(
+                        "\"{}\"{}",
+                        s,
+                        self.stories[s.clone()]
+                            .get_author()
+                            .map(|a| format!(" by {}", a))
+                            .unwrap_or("".to_string())
+                    )
+                })
+                .collect();
 
-            // Parse a number if we got one after "play "
-            if msg.content.contains(' ') {
-                let subs = msg.content.split(' ').collect::<Vec<&str>>();
-                dbg!(subs[1]);
-                if let Ok(num) = subs[1].parse::<u32>() {
-                    countdown_time = num;
-                }
+            if !msg.content.contains(' ') {
+                let channel = msg.channel_id;
+                channel
+                    .say(
+                        &ctx.http,
+                        "To play a story, type something like \"".to_string()
+                            + &prefix
+                            + "play story_name\", where \"story_name\" is the one of the following:\n- " + &stories_with_authors.join("\n- "),
+                    )
+                    .await
+                    .expect("Could not send prefix information text");
+                return;
             }
+
+            // Select a story
+            let story_name = msg.content.split_once(' ').unwrap().1.to_string();
+            let story = self.stories[&story_name].clone();
+            self.game.lock().unwrap().set_story(story);
+
+            let countdown_time = 5; // TODO: get this from the knot, or config, or something...
+
+            //// Parse a number if we got one after "play "
+            //if msg.content.contains(' ') {
+            //    let subs = msg.content.split(' ').collect::<Vec<&str>>();
+            //    dbg!(subs[1]);
+            //    if let Ok(num) = subs[1].parse::<u32>() {
+            //        countdown_time = num;
+            //    }
+            //}
 
             let mut most_recent_message = msg.clone();
 
@@ -280,6 +291,55 @@ impl<'a> Handler<'a> {
                 .to_string(),
             message,
         )
+    }
+}
+
+// TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
+// TODO: maybe if it's a single letter, we can find the emoji version of that letter?
+// TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
+
+// TODO: say what the previous choice was (as long as it's not in []s, of course)
+// TODO: and support having the emoji within []'s
+
+#[tokio::main]
+async fn main() {
+    let opt: Opt = Opt::from_args();
+    println!("{:#?}", opt);
+
+    let story = fs::read_to_string(opt.stories[0].clone()).unwrap(); // TODO: handle multiple
+                                                                     //let story = import_story(&fs::read_to_string(opt.stories[0].clone()).unwrap()); // TODO: handle multiple
+    let token = fs::read_to_string(opt.token_file).unwrap();
+
+    let game = Game::new(&story, opt.knot).set_do_not_pin(opt.do_not_pin);
+
+    let mut client = Client::builder(token)
+        .event_handler(Handler {
+            game: Mutex::new(game),
+            prefix: Mutex::new("!".to_string()),
+
+            // TODO: This should be in a config file, or CLI args or something...
+            stories: opt
+                .stories
+                .iter()
+                .map(|s| {
+                    (
+                        s.file_stem()
+                            .expect(&format!("invalid file: {}", s.as_path().to_str().unwrap()))
+                            .to_string_lossy()
+                            .to_string(),
+                        import_story(
+                            &fs::read_to_string(&s)
+                                .expect(&format!("could not read story {:?}", &s)),
+                        ),
+                    )
+                })
+                .collect(),
+        })
+        .await
+        .expect("Error creating client");
+
+    if let Err(why) = client.start().await {
+        println!("Client error: {:?}", why);
     }
 }
 

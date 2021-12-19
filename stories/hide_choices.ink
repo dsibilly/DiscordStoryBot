@@ -1,4 +1,5 @@
 # hide_choices
+# author: name of author here
 
 VAR health = 100
 
