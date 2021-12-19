@@ -1,5 +1,6 @@
 #![deny(rust_2018_idioms)]
 
+use ink_runner::ink_parser::InkStory;
 use ink_runner::ink_runner::StoryRunner;
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
@@ -27,40 +28,7 @@ impl<'a> Game<'a> {
             choices: vec![],
             config: Default::default(),
         };
-
-        me.runner.set_knot(&match knot {
-            Some(title) => title,
-            None => "__INTRO__".to_string(),
-        });
-
-        me.lines_with_tags = me
-            .runner
-            .start()
-            .into_iter()
-            .map(|l| {
-                (
-                    l.text.to_string(),
-                    l.tags.into_iter().map(|x| x.to_string()).collect(),
-                )
-            })
-            .collect();
-
-        me.lines = me
-            .lines_with_tags
-            .iter()
-            .map(|(line, _)| line.to_string())
-            .collect();
-        me.choices = me.runner.get_options();
-
-        me.config.hide_choices = me
-            .runner
-            .story
-            .global_tags
-            .iter()
-            .any(|&s| is_hide_choices_tag(s));
-
-        // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
-
+        me.reset(knot);
         me
     }
 
@@ -123,6 +91,46 @@ impl<'a> Game<'a> {
 
     pub fn set_knot(&mut self, knot: &str) {
         self.runner.set_knot(knot);
+    }
+
+    pub fn set_story(&mut self, story: InkStory<'a>) {
+        self.runner.replace_story(story);
+        self.reset(None);
+    }
+
+    fn reset(&mut self, knot: Option<String>) {
+        self.runner.set_knot(&match knot {
+            Some(title) => title,
+            None => "__INTRO__".to_string(),
+        });
+
+        self.lines_with_tags = self
+            .runner
+            .start()
+            .into_iter()
+            .map(|l| {
+                (
+                    l.text.to_string(),
+                    l.tags.into_iter().map(|x| x.to_string()).collect(),
+                )
+            })
+            .collect();
+
+        self.lines = self
+            .lines_with_tags
+            .iter()
+            .map(|(line, _)| line.to_string())
+            .collect();
+        self.choices = self.runner.get_options();
+
+        self.config.hide_choices = self
+            .runner
+            .story
+            .global_tags
+            .iter()
+            .any(|&s| is_hide_choices_tag(s));
+
+        // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
     }
 }
 

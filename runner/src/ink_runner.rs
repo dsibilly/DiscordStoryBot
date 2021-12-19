@@ -73,10 +73,12 @@ impl<'a> StoryRunner<'a> {
     /// reload the story from a &str
     /// this leaks that story's memory, so don't do this a billion times if you like your RAM to stay small
     pub fn import_story(&mut self, text: &str) {
-        let stripped = strip_comments(text);
-        let stripped = Box::leak(Box::new(stripped)); // TODO: this is a nasty way to make the string 'static, but it works...
-        let tokens = lex(stripped);
-        self.story = lexed_to_parsed(&tokens);
+        self.story = import_story(text);
+    }
+
+    pub fn replace_story(&mut self, story: InkStory<'a>) {
+        self.story = story;
+        self.state = StoryState::default();
     }
 
     // TODO: take into account which non-sticky choices have already been visited too
@@ -230,4 +232,11 @@ impl<'a> StoryRunner<'a> {
     pub fn set_knot(&mut self, knot: &str) {
         self.state.current_knot_title = knot.to_string();
     }
+}
+
+pub fn import_story<'a>(text: &str) -> InkStory<'a> {
+    let stripped = strip_comments(text);
+    let stripped = Box::leak(Box::new(stripped)); // TODO: this is a nasty way to make the string 'static, but it works...
+    let tokens = lex(stripped);
+    lexed_to_parsed(&tokens)
 }
