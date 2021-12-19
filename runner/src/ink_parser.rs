@@ -50,6 +50,17 @@ pub struct Knot<'a> {
     pub knot_tags: Vec<&'a str>,
 }
 
+impl<'a> Default for Knot<'a> {
+    fn default() -> Self {
+        Knot {
+            title: "__INTRO__".to_string(),
+            lines: vec![],
+            end: "END".into(),
+            knot_tags: vec![],
+        }
+    }
+}
+
 impl<'a> Knot<'a> {
     fn new(s: &str) -> Self {
         Knot {
@@ -73,7 +84,7 @@ impl<'a> From<&'a str> for KnotEnd<'a> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Choice<'a> {
     pub text: &'a str,
     pub show_text: bool,
@@ -82,9 +93,27 @@ pub struct Choice<'a> {
     pub sticky: bool,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default)]
+impl<'a> Default for Choice<'a> {
+    fn default() -> Self {
+        Choice {
+            text: "",
+            show_text: true,
+            lines: vec![],
+            divert: Default::default(),
+            sticky: false,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Divert {
     pub knot_title: String,
+}
+
+impl Default for Divert {
+    fn default() -> Self {
+        "END".into()
+    }
 }
 
 impl From<&str> for Divert {
@@ -140,7 +169,14 @@ pub fn lexed_to_parsed<'a>(tokens: &[InkToken<'a>]) -> InkStory<'a> {
                 index += 1;
             }
             InkToken::Dialog(s) => {
-                starting_lines.push(Line::Dialog(s.into()));
+                if starting_lines.is_empty() {
+                    starting_lines.push(Line::Dialog(DialogLine {
+                        text: s,
+                        tags: starting_tags.clone(),
+                    }));
+                } else {
+                    starting_lines.push(Line::Dialog(s.into()));
+                }
                 index += 1;
             }
             InkToken::KnotTitle(s) => {
@@ -211,7 +247,7 @@ pub fn lexed_to_parsed<'a>(tokens: &[InkToken<'a>]) -> InkStory<'a> {
             } else {
                 KnotEnd::Choices(starting_choices)
             }),
-            knot_tags: vec![],
+            knot_tags: starting_tags.clone(),
         },
     );
 
@@ -261,6 +297,8 @@ fn parse_knot<'a>(title: &str, tokens: &[InkToken<'a>], is_stitch: bool) -> (Vec
                 // !!! TODO: there's no way to know if a following tag was on the same line as a dialog line. Do we need to make sure tags always go first? Or is there another way to do this?
                 //           ^-- currently only tags that come before a line will be included
                 //           - Maybe the solution is to have two kinds of tags (lonely tag, and end-of-line tag), and have the end-of-line one come before dialog, so it's easy to parse.
+
+                // TODO: document that our tags don't follow past diverts, so don't have trailing tags, please.
 
                 // TODO: it seems like remaining tags at the end just get appended to whichever line was last. Weird.
                 //       ... but not really. They make their own empty line that isn't a line. Bah. Weird.

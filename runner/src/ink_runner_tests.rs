@@ -174,23 +174,23 @@ fn run_bot_story() {
             "Residence of Monsieur Phileas Fogg.".into(),
             DialogLine {
                 text: "It was cool downtown.",
-                tags: vec!["downtown tag"],
+                tags: vec!["downtown tag", "tag ya"],
             },
             DialogLine {
                 text: "Suburbs were cool too.",
-                tags: vec!["suburbs tag"],
+                tags: vec!["suburbs tag", "tag too"],
             },
             DialogLine {
                 text: "Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides!",
-                tags: vec!["health +1"],
+                tags: vec!["health +1", "tag1", "tag2"],
             },
             DialogLine {
                 text: "health: \"{health}\"",
-                tags: vec!["tag1", "tag2"]
+                tags: vec![]
             },
             DialogLine {
                 text: "\"Passepartout,\" said he. \"We are going around the world!\"",
-                tags: vec!["tag 4"],
+                tags: vec!["tag 4", "tag 3"],
             },
         ]
     );

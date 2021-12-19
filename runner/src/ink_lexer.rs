@@ -110,8 +110,8 @@ pub fn lex(text: &str) -> Vec<InkToken<'_>> {
                     line = line[0..index].trim();
                 }
 
-                let mut result = vec![Dialog(line.trim())];
-                result.append(&mut tags);
+                let mut result = tags;
+                result.push(Dialog(line.trim()));
                 if let Some(divert) = divert {
                     result.push(Divert(divert));
                 }

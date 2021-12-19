@@ -46,7 +46,11 @@ struct Opt {
 
     /// Optional knot to start with (can be used with state, but not required). Default is the beginning.
     #[structopt(short, long)]
-    knot: Option<String>, // TODO: use this
+    knot: Option<String>,
+
+    /// whether to pin the story messages
+    #[structopt(long)]
+    do_not_pin: bool,
 }
 
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
@@ -64,7 +68,7 @@ async fn main() {
     let story = fs::read_to_string(opt.story).unwrap();
     let token = fs::read_to_string(opt.token_file).unwrap();
 
-    let game = Game::new(&story, opt.knot);
+    let game = Game::new(&story, opt.knot).set_do_not_pin(opt.do_not_pin);
 
     let mut client = Client::builder(token)
         .event_handler(Handler {
@@ -92,7 +96,8 @@ impl<'a> EventHandler for Handler<'a> {
         if msg.content.starts_with(&(prefix.to_string() + "help")) {
             let channel = msg.channel_id;
             channel
-                .say(&ctx.http, "To start a story type something like \"".to_string() + &prefix + "play 30\", where \"30\" is the number of seconds each voting round should last.")
+                .say(&ctx.http, "To start a story type something like \"".to_string() + &prefix + "play 30\", where \"30\" is the number of seconds each voting round should last.\n\
+                To change the prefix, use the \"" + &prefix + "prefix\" command")
                 .await
                 .expect("Could not send help text");
         }
@@ -139,12 +144,16 @@ impl<'a> EventHandler for Handler<'a> {
                 }
             }
 
+            let mut most_recent_message = msg.clone();
+
             while !self.game.lock().unwrap().is_over() {
                 // Get list of choice options
-                let text = (self.game.lock().unwrap().lines_as_text()).clone();
+                let mut text = (self.game.lock().unwrap().lines_as_text()).clone();
                 let choices = self.game.lock().unwrap().choices_as_strings();
 
-                let text = text + "\n\n" + &choices.join("\n");
+                if !self.game.lock().unwrap().should_hide_choices() {
+                    text = text + "\n\n" + &choices.join("\n");
+                }
 
                 // only the first grapheme, so we get just the emoji at the start
                 let approved_emoji = choices
@@ -154,11 +163,12 @@ impl<'a> EventHandler for Handler<'a> {
 
                 let images: Vec<String> = self.game.lock().unwrap().images();
                 dbg!(&images);
+                dbg!(self.game.lock().unwrap().lines_and_tags());
 
-                let choice = self
+                let (choice, story_message) = self
                     .do_story_beat(
                         &ctx,
-                        &msg,
+                        &most_recent_message,
                         &text,
                         images,
                         &approved_emoji,
@@ -167,6 +177,7 @@ impl<'a> EventHandler for Handler<'a> {
                     )
                     .await;
                 dbg!(&choice);
+                most_recent_message = story_message;
 
                 self.game.lock().unwrap().choose(&choice);
             }
@@ -196,21 +207,16 @@ impl<'a> Handler<'a> {
     async fn do_story_beat(
         &self,
         ctx: &Context,
-        msg: &Message,
+        previous_message: &Message,
         text: &str,
         paths: Vec<String>, // TODO: make this more generic
         approved_emoji: &[String],
         choices: &[String],
         countdown: u32,
-    ) -> String {
-        let channel = msg.channel_id;
+    ) -> (String, Message) {
+        let channel = previous_message.channel_id;
         let mut countdown = countdown as i32;
         let countdown_increment: i32 = 5;
-
-        //dbg!(images);
-
-        //let paths = vec!["img/castle_lowres.jpg"];
-        //let paths: Vec<&str> = vec![];
 
         let paths: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
 
@@ -222,8 +228,10 @@ impl<'a> Handler<'a> {
             .await
             .expect(&format!("Could not send message {}", &text));
 
-        dbg!(msg.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
-        dbg!(message.pin(ctx).await);
+        if !self.game.lock().unwrap().do_not_pin() {
+            //dbg!(previous_message.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
+            dbg!(message.pin(ctx).await); // TODO: docs, saying that Manage Messages is required
+        }
 
         // React to self with options
         for emoji in approved_emoji {
@@ -250,7 +258,7 @@ impl<'a> Handler<'a> {
         // Get the highest-rated emoji (from the approved list for this text)
         let mut counts = BTreeMap::new();
 
-        for r in message.reactions {
+        for r in &message.reactions {
             if approved_emoji.contains(&r.reaction_type.to_string()) {
                 counts.insert(r.reaction_type.to_string(), r.count);
             }
@@ -264,10 +272,23 @@ impl<'a> Handler<'a> {
             .0
             .to_owned();
 
-        choices
-            .iter()
-            .find(|s| s.starts_with(&winning_emoji))
-            .unwrap()
-            .to_string()
+        (
+            choices
+                .iter()
+                .find(|s| s.starts_with(&winning_emoji))
+                .unwrap()
+                .to_string(),
+            message,
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //use super::*;
+
+    #[test]
+    fn basic_story() {
+        // TODO: split up the code above so the pieces of it are testable.
     }
 }

@@ -9,6 +9,13 @@ pub struct Game<'a> {
     lines: Vec<String>,
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
+    config: GameConfig,
+}
+
+#[derive(Default)]
+struct GameConfig {
+    hide_choices: bool,
+    do_not_pin: bool,
 }
 
 impl<'a> Game<'a> {
@@ -18,6 +25,7 @@ impl<'a> Game<'a> {
             lines: vec![],
             lines_with_tags: vec![],
             choices: vec![],
+            config: Default::default(),
         };
 
         me.runner.set_knot(&match knot {
@@ -36,21 +44,47 @@ impl<'a> Game<'a> {
                 )
             })
             .collect();
+
         me.lines = me
-            .lines_and_tags()
+            .lines_with_tags
             .iter()
             .map(|(line, _)| line.to_string())
             .collect();
         me.choices = me.runner.get_options();
+
+        me.config.hide_choices = me
+            .runner
+            .story
+            .global_tags
+            .iter()
+            .any(|&s| is_hide_choices_tag(s));
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
 
         me
     }
 
+    pub fn set_do_not_pin(mut self, do_not_pin: bool) -> Self {
+        self.config.do_not_pin = do_not_pin;
+        self
+    }
+
     pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
-        self.lines = lines.into_iter().map(|l| l.text.to_string()).collect();
+        self.lines = lines
+            .clone()
+            .into_iter()
+            .map(|l| l.text.to_string())
+            .collect();
+        self.lines_with_tags = lines
+            .into_iter()
+            .map(|l| {
+                (
+                    l.text.to_string(),
+                    l.tags.iter().map(|s| s.to_string()).collect(),
+                )
+            })
+            .collect();
         self.choices = self.runner.get_options();
     }
 
@@ -68,6 +102,14 @@ impl<'a> Game<'a> {
 
     pub fn lines_and_tags(&self) -> Vec<(String, Vec<String>)> {
         self.lines_with_tags.clone()
+    }
+
+    pub fn do_not_pin(&self) -> bool {
+        self.config.do_not_pin
+    }
+
+    pub fn should_hide_choices(&self) -> bool {
+        self.config.hide_choices
     }
 
     pub fn images(&self) -> Vec<String> {
@@ -90,8 +132,12 @@ pub fn get_img_tag_image(tag: &str) -> Option<String> {
         .map(|path| "img/".to_string() + path.trim())
 }
 
+pub fn is_hide_choices_tag(tag: &str) -> bool {
+    dbg!(tag);
+    tag == "hide_choices"
+}
+
 #[cfg(test)]
-#[allow(unused)] // TODO: Delete This
 mod tests {
     use super::*;
 
@@ -107,5 +153,21 @@ mod tests {
         dbg!(&game.choices_as_strings());
 
         assert_eq!(true, game.is_over());
+    }
+
+    #[test]
+    fn hide_choices() {
+        let game = Game::new(include_str!("../stories/basic_story.ink"), None);
+        assert_eq!(game.config.hide_choices, false);
+        let game = Game::new(include_str!("../stories/hide_choices.ink"), None);
+        assert_eq!(game.config.hide_choices, true);
+    }
+
+    #[test]
+    fn parse_images() {
+        assert_eq!(
+            get_img_tag_image("img:A.png"),
+            Some("img/A.png".to_string())
+        );
     }
 }
