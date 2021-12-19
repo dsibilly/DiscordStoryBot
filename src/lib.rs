@@ -8,6 +8,13 @@ pub struct Game<'a> {
     runner: StoryRunner<'a>,
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
+    config: GameConfig,
+}
+
+#[derive(Default)]
+struct GameConfig {
+    hide_choices: bool,
+    do_not_pin: bool,
 }
 
 impl<'a> Game<'a> {
@@ -16,6 +23,7 @@ impl<'a> Game<'a> {
             runner: StoryRunner::build_from_str(content),
             lines_with_tags: vec![],
             choices: vec![],
+            config: Default::default(),
         };
 
         me.runner.set_knot(&match knot {
@@ -34,11 +42,24 @@ impl<'a> Game<'a> {
                 )
             })
             .collect();
+        
         me.choices = me.runner.get_options();
+
+        me.config.hide_choices = me
+            .runner
+            .story
+            .global_tags
+            .iter()
+            .any(|&s| is_hide_choices_tag(s));
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
 
         me
+    }
+
+    pub fn set_do_not_pin(mut self, do_not_pin: bool) -> Self {
+        self.config.do_not_pin = do_not_pin;
+        self
     }
 
     pub fn choose(&mut self, emoji: &str) {
@@ -70,6 +91,14 @@ impl<'a> Game<'a> {
         self.lines_with_tags.clone()
     }
 
+    pub fn do_not_pin(&self) -> bool {
+        self.config.do_not_pin
+    }
+
+    pub fn should_hide_choices(&self) -> bool {
+        self.config.hide_choices
+    }
+
     pub fn images(&self) -> Vec<String> {
         self.lines_and_tags()
             .into_iter()
@@ -90,8 +119,12 @@ pub fn get_img_tag_image(tag: &str) -> Option<String> {
         .map(|path| "img/".to_string() + path.trim())
 }
 
+pub fn is_hide_choices_tag(tag: &str) -> bool {
+    dbg!(tag);
+    tag == "hide_choices"
+}
+
 #[cfg(test)]
-#[allow(unused)] // TODO: Delete This
 mod tests {
     use super::*;
 
@@ -107,5 +140,21 @@ mod tests {
         dbg!(&game.choices_as_strings());
 
         assert_eq!(true, game.is_over());
+    }
+
+    #[test]
+    fn hide_choices() {
+        let game = Game::new(include_str!("../stories/basic_story.ink"), None);
+        assert_eq!(game.config.hide_choices, false);
+        let game = Game::new(include_str!("../stories/hide_choices.ink"), None);
+        assert_eq!(game.config.hide_choices, true);
+    }
+
+    #[test]
+    fn parse_images() {
+        assert_eq!(
+            get_img_tag_image("img:A.png"),
+            Some("img/A.png".to_string())
+        );
     }
 }
