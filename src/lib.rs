@@ -132,6 +132,10 @@ impl<'a> Game<'a> {
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
     }
+
+    pub fn get_author(&self) -> Option<String> {
+        self.runner.story.get_author()
+    }
 }
 
 pub fn get_img_tag_image(tag: &str) -> Option<String> {

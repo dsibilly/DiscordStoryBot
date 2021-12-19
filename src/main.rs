@@ -2,6 +2,7 @@
 #![allow(clippy::too_many_arguments, clippy::expect_fun_call)]
 
 // TODO: only one story active at a time
+// TODO: in the story selector, show the authors' names
 // TODO: 'pause' and 'resume' commands
 // TODO: choose story beat time in tags
 // TODO: save the state whenever it changes, and be able to load it up again
@@ -110,6 +111,19 @@ impl<'a> EventHandler for Handler<'a> {
         if msg.content.starts_with(&(prefix.to_string() + "play")) {
             //let stories = ["basic_story"];
             let stories = self.stories.keys().map(|k| k.as_str()).collect::<Vec<_>>();
+            let stories_with_authors: Vec<String> = stories
+                .iter()
+                .map(|s| {
+                    format!(
+                        "\"{}\"{}",
+                        s,
+                        self.stories[s.clone()]
+                            .get_author()
+                            .map(|a| format!(" by {}", a))
+                            .unwrap_or("".to_string())
+                    )
+                })
+                .collect();
 
             if !msg.content.contains(' ') {
                 let channel = msg.channel_id;
@@ -118,7 +132,7 @@ impl<'a> EventHandler for Handler<'a> {
                         &ctx.http,
                         "To play a story, type something like \"".to_string()
                             + &prefix
-                            + "play story_name\", where \"story_name\" is the one of the following:\n- " + &stories.join("\n- "),
+                            + "play story_name\", where \"story_name\" is the one of the following:\n- " + &stories_with_authors.join("\n- "),
                     )
                     .await
                     .expect("Could not send prefix information text");
