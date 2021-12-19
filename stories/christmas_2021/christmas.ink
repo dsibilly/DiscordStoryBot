@@ -1,5 +1,5 @@
-Christmas has just ended and it's almost new years. You've come to the North Pole to lend a hand to the hardworking elves. Santa has had a rough year, only half the amount of supplies that were meant to be delivered to the North Pole for next year have arrived!
-You are approached by an elderly Christmas elf. He slouches over a cane and licks his lips as he begins to speak, "Greetings youngins, my name is Larry. I'm glad you're here to help! I'm afraid the North Pole has fallen in disrepair. We will need a good head start on things if there is to be a Christmas next year."
+Christmas🎄 has just ended and it's almost new years. You've come to the North Pole to lend a hand to the hardworking elves. Santa has had a rough year, only half the amount of supplies that were meant to be delivered to the North Pole for next year have arrived!
+You are approached by an elderly 🎄Christmas🎄 elf. He slouches over a cane and licks his lips as he begins to speak, "Greetings youngins, my name is Larry. I'm glad you're here to help! I'm afraid the North Pole has fallen in disrepair. We will need a good head start on things if there is to be a Christmas🎄 next year."
 #img:../stories/christmas_2021/img/game_art/northpole.jpg
 
  * 😟
@@ -98,7 +98,7 @@ Harold leads you into a back room of the delivery center. There is Santa's sled,
 
 === worried_task3_1 ===
 #img:../stories/christmas_2021/img/game_art/train.png
-You helped Harold fix the sled and you feel it should hold for now. However, it will still likely require a tuneup for next Christmas. For now it can at least be used to ferry equipment and goods across the North Pole compound.
+You helped Harold fix the sled and you feel it should hold for now. However, it will still likely require a tuneup for next Christmas🎄. For now it can at least be used to ferry equipment and goods across the North Pole compound.
 "Well, I hope that works." Larry said to Harold, curtly. "We must be off though, there is a labor dispute erupting at the toy factory. We will need to take the train to get there on time to defuse the situation. I know the union chairman there, Sibel, she should be fairly easy to negotiate with as long as we leave a couple concessions for the year. Good luck, Harold, hope to see you soon!"
 Larry starts moving off, then waves for you to follow him with a flurish of his cane in the air. "Come, lets head off. We have people to talk to and things to see." Larry leads you out the side of the delivery center where there is a tiny platform, and a small train track. Obviously constructed for elves. It's a cheery little structure, strung up with multicolored lights and nestled in a grove of fir trees. The train that approaches is just as minute as the platform. It's painted red and green and seems to be trimed with gingerbread. The train pulls up to the platform quickly and before you know it you are off to the toy factory.
 
@@ -128,7 +128,7 @@ Larry starts moving off, then waves for you to follow him with a flurish of his 
 #img:../stories/christmas_2021/img/game_art/train.png
  Fixing the sled did not go as well as it seemed it would. The state of the thing even got worse as you and Harold worked on it. There is no way the thing could be used to do anything now. It's likely it will still be in the shop well past the new year.
  "Well that's that I guess." Larry said to no one in particular. "We are running out of time. There is a labor dispute at the toy factory. I hate to leave you this way, Harold, but we need to be heading over there as soon as we can. I know the lead elf of the union, Sibel, she is usually willing to listen to reason. I assume they are just looking for the routine pay raise or a couple enhancements to the working conditions. Best of luck, Harold, I really hope you can figure this one out."
- Larry smiles over to you, "Follow me, lets be quick about this. Sibel is a wonderful elf, it will be greatto see her again. Though, she won't wait forever." You follow Larry out the back of the delivery center. There, nestled in a plesant little grove of fir trees is a small train platform. It is lined with Christmas lights and just a wonderful sight to behold. The train arrives promptly and you board, impressed by how comfortable the seating is and how roomy the passanger cars are on the inside. The train speeds off to your next destination.
+ Larry smiles over to you, "Follow me, lets be quick about this. Sibel is a wonderful elf, it will be greatto see her again. Though, she won't wait forever." You follow Larry out the back of the delivery center. There, nestled in a plesant little grove of fir trees is a small train platform. It is lined with Christmas🎄 lights and just a wonderful sight to behold. The train arrives promptly and you board, impressed by how comfortable the seating is and how roomy the passanger cars are on the inside. The train speeds off to your next destination.
 
   * 😟
   -> worried_task4_1
@@ -185,7 +185,7 @@ You and Larry exit the main door to the toy factory. Standing on a platform with
 #img:../stories/christmas_2021/img/game_art/santa.jpg
 You rub your hands together and blow on them to keep them warm in the crisp, cool night air. Larry has been talking to the lead elf in the labour dispute for over an hour now. Sibel, it seems her name is. There doesn't seem to be much progress being made either. You finally approach the two to see if you can help when from behind you you hear a booming, "HO! HO! HO!"
 Startled, you slowly turn around. Sure enough; there he is. Big red coat, fluffy white beard, and rosey cheeks. He puts his hand on your shoulder and smiles. You instantly feel warm and comfortable. As if everything will work out and there is nothing to worry about.
-The big jolly man before you then walks ahead to speak with Sibel and Larry. It isn't long before they are both laughing and shaking hands together. Larry comes and gives you a great big hug, "Well! I do believe it is going to be a wonderful new year. Thank you for coming along and helping me today. I truely appreciate it."
+The big jolly man before you then walks ahead to speak with Sibel and Larry. It isn't long before they are both laughing and shaking hands together. Larry comes and gives you a great big hug, "Well! I do believe it is going to be a wonderful new year. Thank you for coming along and helping me today. I truely appreciate it."🎅
 
  * 😟
  -> win
@@ -198,8 +198,8 @@ The big jolly man before you then walks ahead to speak with Sibel and Larry. It 
 === confident_task_5_1 ===
  #img:../stories/christmas_2021/img/game_art/santa.jpg
  Well, the negotiations that Larry and the lead elf, Sibel, were quick. They had only talked for a couple of minutes when they started walking towards you. "This is Sibel", the old elf says as they approach you. "Nice  to meet you." Sibel speaks up, "Larry's been telling me all about how you've been helping him around the North Pole today."
- Immediately behind you there roars a great "HO! HO! HO!". You all turn to see a great jolly man in a red coat, puffy white beard, and rosey cheeks. "Merry Christmas! Or rather, merry between-christmas-and-new-years I suppose! HO! HO! HO!"
- "I've heard you've been making my North Pole ready for the new year." He says towards you. "I'm so glad you've come to help. This past year has been difficult indeed, and we've been lagging sorely behind I'm afraid. So thank you for all you hard work."
+ Immediately behind you there roars a great "HO! HO! HO!". You all turn to see a great jolly man in a red coat, puffy white beard, and rosey cheeks. "Merry Christmas🎄! Or rather, merry between-christmas-and-new-years I suppose! HO! HO! HO!"
+ "I've heard you've been making my North Pole ready for the new year." He says towards you. "I'm so glad you've come to help. This past year has been difficult indeed, and we've been lagging sorely behind I'm afraid. So thank you for all you hard work."🎅
 
   * 😟
   -> lose
@@ -213,7 +213,7 @@ The big jolly man before you then walks ahead to speak with Sibel and Larry. It 
 #img:../stories/christmas_2021/img/game_art/santa.jpg
 The negotiations between Larry and the elf, who you now understand to be called Sibel, could not have been going worse. Now they were screaming at eachother. Many of the picketers were cheering on Sibel at first, but now the fighting had just gotten egregious so many were sitting or just staring in dumbfounded awe.
 At the height of Larry's longest rant, suddenly a great booming voice sounded, over top of the crowd. "HO! HO! HO!" in the midst of the picketing line appeared a great bear of a man. He wore a big red coat, had a fluffy white beard and rosey red cheeks. "Now, now, Larry, Sibel what seems to be the problem today?" his voice carried over the crowd so everyone could hear him as clear as if they were standing right beside him.
-The great man walks up to meet them. Both elves plead their case to the jolly man who, in turn, showers them with kind words and reasurances. To your supprise, they end up working things out together without anyone else needing to make a decision. Once they are finished, Santa Clause turns to you, "Well! That was indeed very 'close'. I'll need to keep a closer eye on what is going on in the factory I believe. HO! HO! HO! Thank you for helping Larry out today. I think we are well on our way to having a wonderful year!"
+The great man walks up to meet them. Both elves plead their case to the jolly man who, in turn, showers them with kind words and reasurances. To your supprise, they end up working things out together without anyone else needing to make a decision. Once they are finished, Santa Clause turns to you, "Well! That was indeed very 'close'. I'll need to keep a closer eye on what is going on in the factory I believe. HO! HO! HO! Thank you for helping Larry out today. I think we are well on our way to having a wonderful year!"🎅
 
   * 😟
   -> lose
@@ -224,10 +224,10 @@ The great man walks up to meet them. Both elves plead their case to the jolly ma
 
 
 === lose ===
-You have contributed a lot to Christmas for next year. However, you can't help but feel there was more you could have done.
+You have contributed a lot to Christmas🎄 for next year. However, you can't help but feel there was more you could have done.
     -> END
 
 
 === win ===
-This year will be a breeze for the elves thanks to your contributions. You're excited to help again next year.
+Christmas🎄 this year will be a breeze for the elves thanks to your contributions. You're excited to help again next year.
     -> END
