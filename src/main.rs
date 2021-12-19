@@ -163,6 +163,7 @@ impl<'a> EventHandler for Handler<'a> {
 
                 let images: Vec<String> = self.game.lock().unwrap().images();
                 dbg!(&images);
+                dbg!(self.game.lock().unwrap().lines_and_tags());
 
                 let (choice, story_message) = self
                     .do_story_beat(

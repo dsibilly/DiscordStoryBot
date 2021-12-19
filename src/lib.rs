@@ -44,8 +44,9 @@ impl<'a> Game<'a> {
                 )
             })
             .collect();
+
         me.lines = me
-            .lines_and_tags()
+            .lines_with_tags
             .iter()
             .map(|(line, _)| line.to_string())
             .collect();
@@ -70,7 +71,20 @@ impl<'a> Game<'a> {
 
     pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
-        self.lines = lines.into_iter().map(|l| l.text.to_string()).collect();
+        self.lines = lines
+            .clone()
+            .into_iter()
+            .map(|l| l.text.to_string())
+            .collect();
+        self.lines_with_tags = lines
+            .into_iter()
+            .map(|l| {
+                (
+                    l.text.to_string(),
+                    l.tags.iter().map(|s| s.to_string()).collect(),
+                )
+            })
+            .collect();
         self.choices = self.runner.get_options();
     }
 
@@ -147,5 +161,13 @@ mod tests {
         assert_eq!(game.config.hide_choices, false);
         let game = Game::new(include_str!("../stories/hide_choices.ink"), None);
         assert_eq!(game.config.hide_choices, true);
+    }
+
+    #[test]
+    fn parse_images() {
+        assert_eq!(
+            get_img_tag_image("img:A.png"),
+            Some("img/A.png".to_string())
+        );
     }
 }

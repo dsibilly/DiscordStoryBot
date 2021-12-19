@@ -295,6 +295,7 @@ fn parse_image_tag() {
                             tags: vec!["img:castle_lowres.jpg"]
                         }),],
                         end: KnotEnd::Divert("space".into()),
+                        knot_tags: vec!["img:castle_lowres.jpg".into()],
                         ..Default::default()
                     }
                 ),
@@ -311,7 +312,7 @@ fn parse_image_tag() {
                     }
                 )
             ]),
-            global_tags: vec![]
+            global_tags: vec!["img:castle_lowres.jpg"]
         }
     );
 }
@@ -328,7 +329,11 @@ fn parse_global_tags() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    lines: vec!["The story begins...".into()],
+                    lines: vec![Line::Dialog(DialogLine {
+                        text: "The story begins...",
+                        tags: vec!["author: Cool Coolman", "title: The Gracious Wizard"]
+                    })],
+                    knot_tags: vec!["author: Cool Coolman", "title: The Gracious Wizard"],
                     ..Default::default()
                 }
             ),]),
@@ -655,7 +660,11 @@ fn parse_top_level_tag() {
             knots: BTreeMap::from([(
                 "__INTRO__".to_string(),
                 Knot {
-                    lines: vec!["started".into()],
+                    lines: vec![Line::Dialog(DialogLine {
+                        text: "started",
+                        tags: vec!["tag_is_here"]
+                    })],
+                    knot_tags: vec!["tag_is_here"],
                     ..Default::default()
                 }
             ),]),
