@@ -6,7 +6,6 @@ use ink_runner::ink_runner::StoryRunner;
 /// while choices aren't Prompt::Done, there is still more story left.
 pub struct Game<'a> {
     runner: StoryRunner<'a>,
-    lines: Vec<String>,
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
 }
@@ -15,7 +14,6 @@ impl<'a> Game<'a> {
     pub fn new(content: &str, knot: Option<String>) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
-            lines: vec![],
             lines_with_tags: vec![],
             choices: vec![],
         };
@@ -36,11 +34,6 @@ impl<'a> Game<'a> {
                 )
             })
             .collect();
-        me.lines = me
-            .lines_and_tags()
-            .iter()
-            .map(|(line, _)| line.to_string())
-            .collect();
         me.choices = me.runner.get_options();
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
@@ -50,12 +43,19 @@ impl<'a> Game<'a> {
 
     pub fn choose(&mut self, emoji: &str) {
         let lines = self.runner.step(emoji);
-        self.lines = lines.into_iter().map(|l| l.text.to_string()).collect();
+        self.lines_with_tags = lines.into_iter().map(|l| (
+                                l.text.to_string(),
+                                l.tags.into_iter().map(|x| x.to_string()).collect()
+                            )).collect();
         self.choices = self.runner.get_options();
     }
 
     pub fn lines_as_text(&self) -> String {
-        self.lines.join("\n")
+        self.lines_with_tags.clone()
+            .into_iter()
+            .map(|( s,_)| s)
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {
