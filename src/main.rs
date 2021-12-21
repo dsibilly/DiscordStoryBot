@@ -76,8 +76,15 @@ impl<'a> EventHandler for Handler<'a> {
         if msg.content.starts_with(&(prefix.to_string() + "help")) {
             let channel = msg.channel_id;
             channel
-                .say(&ctx.http, "To start a story type something like \"".to_string() + &prefix + "play 30\", where \"30\" is the number of seconds each voting round should last.\n\
-                To change the prefix, use the \"" + &prefix + "prefix\" command")
+                .say(
+                    &ctx.http,
+                    "To start a story type something like \"".to_string()
+                        + &prefix
+                        + "play story1\", where \"story1\" is the story you would like to run.\n\
+                To change the prefix, use the \""
+                        + &prefix
+                        + "prefix\" command",
+                )
                 .await
                 .expect("Could not send help text");
         }
