@@ -5,12 +5,14 @@
     clippy::or_fun_call
 )]
 
-// TODO: only one story active at a time
-// TODO: in the story selector, show the authors' names
+// TODO: make each story a directory, with images in its own img, so the story only has to worry about relative paths
+// TODO: if no command line args are used, use a config file, or maybe just _always_ use a config file
+//       or maybe I can just put all that in systemctl file?
+// TODO: only one story active at a time (per channel)
 // TODO: 'pause' and 'resume' commands
-// TODO: choose story beat time in tags
-// TODO: save the state whenever it changes, and be able to load it up again
-// TODO: point to a directory, or auto-import all stories nested within "stories"
+// TODO: choose story beat time in tags (or at least a multiplier or something)
+// TODO: save the state whenever it changes, and be able to load it up again (per channel)
+// TODO: point to a directory, or auto-import all stories nested within "stories" (https://rust-lang-nursery.github.io/rust-cookbook/file/dir.html#recursively-find-all-files-with-given-predicate)
 // TODO: set which hours the bot is allowed to run
 
 use std::cmp::min;

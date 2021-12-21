@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o xtrace
+
+readonly TARGET_HOST=pi@192.168.1.111
+readonly TARGET_PATH=/home/pi/discord_story_bot
+readonly TARGET_ARCH=arm-unknown-linux-gnueabi
+readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/discord_story_bot
+
+cargo build --release --target=${TARGET_ARCH}
+rsync ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH}
+rsync -a ./client_ids/ ${TARGET_HOST}:/home/pi/client_ids
+rsync -a ./stories/ ${TARGET_HOST}:/home/pi/stories
+rsync -a ./img/ ${TARGET_HOST}:/home/pi/img
+ssh -t ${TARGET_HOST} sudo systemctl enable discord-story-bot.service
+ssh -t ${TARGET_HOST} sudo systemctl restart discord-story-bot.service
