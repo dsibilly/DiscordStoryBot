@@ -10,6 +10,9 @@ pub struct Game<'a> {
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
     config: GameConfig,
+    pub active: bool,  // TODO: should this be private? Or on Handler, maybe?
+    pub stopped: bool, // TODO: should this be private? Or on Handler, maybe?
+    pub paused: bool,  // TODO: should this be private? Or on Handler, maybe?
 }
 
 #[derive(Default)]
@@ -25,6 +28,9 @@ impl<'a> Game<'a> {
             lines_with_tags: vec![],
             choices: vec![],
             config: Default::default(),
+            active: false,
+            stopped: false,
+            paused: false,
         };
         me.reset(knot);
         me

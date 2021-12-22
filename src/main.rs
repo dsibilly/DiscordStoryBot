@@ -5,7 +5,6 @@
     clippy::or_fun_call
 )]
 
-// TODO: only one story active at a time (per channel)
 // TODO: make each story a directory, with images in its own img, so the story only has to worry about relative paths
 // TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
 // TODO: import all stories that are within the stories directory, where each one is its own directory
@@ -76,6 +75,8 @@ impl<'a> EventHandler for Handler<'a> {
         let prefix = self.prefix.lock().unwrap().clone();
 
         if msg.content.starts_with(&(prefix.to_string() + "help")) {
+            // TODO: move this out into its own function, please.
+
             let channel = msg.channel_id;
             channel
                 .say(
@@ -89,9 +90,9 @@ impl<'a> EventHandler for Handler<'a> {
                 )
                 .await
                 .expect("Could not send help text");
-        }
+        } else if msg.content.starts_with(&(prefix.to_string() + "prefix")) {
+            // TODO: move this out into its own function, please.
 
-        if msg.content.starts_with(&(prefix.to_string() + "prefix")) {
             let channel = msg.channel_id;
             if msg.content.contains(' ') {
                 let new_prefix;
@@ -121,10 +122,9 @@ impl<'a> EventHandler for Handler<'a> {
                     .await
                     .expect("Could not send prefix information text");
             }
-        }
+        } else if msg.content.starts_with(&(prefix.to_string() + "play")) {
+            // TODO: move this out into its own function, please.
 
-        if msg.content.starts_with(&(prefix.to_string() + "play")) {
-            //let stories = ["basic_story"];
             let stories = self.stories.keys().map(|k| k.as_str()).collect::<Vec<_>>();
             let stories_with_authors: Vec<String> = stories
                 .iter()
@@ -159,7 +159,19 @@ impl<'a> EventHandler for Handler<'a> {
             let story = self.stories[&story_name].clone();
             self.game.lock().unwrap().set_story(story);
 
-            let countdown_time = 5; // TODO: get this from the knot, or config, or something...
+            // See if there is already a game running
+            if self.game.lock().unwrap().active {
+                let channel = msg.channel_id;
+                channel
+                    .say(&ctx.http, "A story is already in progress".to_string())
+                    .await
+                    .expect("Could not send \"story in progress\" text");
+                return;
+            }
+
+            self.game.lock().unwrap().active = true;
+
+            let countdown_time = 15; // TODO: get this from the knot, or config, or something...
 
             //// Parse a number if we got one after "play "
             //if msg.content.contains(' ') {
@@ -206,6 +218,18 @@ impl<'a> EventHandler for Handler<'a> {
                 most_recent_message = story_message;
 
                 self.game.lock().unwrap().choose(&choice);
+
+                if self.game.lock().unwrap().stopped {
+                    self.game.lock().unwrap().stopped = false;
+                    self.game.lock().unwrap().active = false;
+                    let channel = msg.channel_id;
+                    channel
+                        .say(&ctx.http, "The story has been stopped.".to_string())
+                        .await
+                        .expect("Could not send \"story is stopped\" text");
+                    dbg!("STORY IS STOPPED");
+                    return;
+                }
             }
 
             let text = self.game.lock().unwrap().lines_as_text();
@@ -215,11 +239,16 @@ impl<'a> EventHandler for Handler<'a> {
                 .await
                 .expect("Could not send next initial text");
 
-            dbg!("STORY IS OVER NOW");
-        }
+            self.game.lock().unwrap().active = false;
 
-        if msg.content == (prefix.to_string() + "continue") {
-            println!("huh?!");
+            dbg!("STORY IS OVER NOW");
+        } else if msg.content == (prefix.to_string() + "continue") {
+            // TODO
+        } else if msg.content == (prefix.to_string() + "pause") {
+            // TODO
+        } else if msg.content == (prefix.to_string() + "stop") {
+            dbg!("STORY IS STOPPING");
+            self.game.lock().unwrap().stopped = true;
         }
     }
 
@@ -273,6 +302,11 @@ impl<'a> Handler<'a> {
             sleep(Duration::from_secs(sleep_this_long as u64));
             countdown -= sleep_this_long;
 
+            if self.game.lock().unwrap().stopped {
+                dbg!("Stopping countdown");
+                break;
+            }
+
             message
                 .edit(ctx, |m| {
                     m.content(text.to_string() + &format!("\n({}s remaining)", countdown))
@@ -281,22 +315,26 @@ impl<'a> Handler<'a> {
                 .expect("could not edit");
         }
 
-        // Get the highest-rated emoji (from the approved list for this text)
-        let mut counts = BTreeMap::new();
-
-        for r in &message.reactions {
-            if approved_emoji.contains(&r.reaction_type.to_string()) {
-                counts.insert(r.reaction_type.to_string(), r.count);
-            }
-        }
-
         // Return the winning emoji
-        let winning_emoji = counts
-            .iter()
-            .max_by_key(|a| a.1)
-            .expect("No emoji was chosen, not even by the bot")
-            .0
-            .to_owned();
+        let winning_emoji = if self.game.lock().unwrap().stopped {
+            approved_emoji[0].to_string()
+        } else {
+            // Get the highest-rated emoji (from the approved list for this text)
+            let mut counts = BTreeMap::new();
+
+            for r in &message.reactions {
+                if approved_emoji.contains(&r.reaction_type.to_string()) {
+                    counts.insert(r.reaction_type.to_string(), r.count);
+                }
+            }
+
+            counts
+                .iter()
+                .max_by_key(|a| a.1)
+                .expect("No emoji was chosen, not even by the bot")
+                .0
+                .to_owned()
+        };
 
         (
             choices
