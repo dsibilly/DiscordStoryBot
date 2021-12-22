@@ -5,10 +5,12 @@
     clippy::or_fun_call
 )]
 
-// TODO: make each story a directory, with images in its own img, so the story only has to worry about relative paths
-// TODO: if no command line args are used, use a config file, or maybe just _always_ use a config file
-//       or maybe I can just put all that in systemctl file?
 // TODO: only one story active at a time (per channel)
+// TODO: make each story a directory, with images in its own img, so the story only has to worry about relative paths
+// TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
+// TODO: import all stories that are within the stories directory, where each one is its own directory
+// TODO: if no command line args are used, use a config file, or maybe just _always_ use a config file
+//       or maybe I can just put all that in systemctl file? (this works for now)
 // TODO: 'pause' and 'resume' commands
 // TODO: choose story beat time in tags (or at least a multiplier or something)
 // TODO: save the state whenever it changes, and be able to load it up again (per channel)
