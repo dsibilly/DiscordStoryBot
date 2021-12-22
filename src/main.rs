@@ -171,7 +171,7 @@ impl<'a> EventHandler for Handler<'a> {
 
             self.game.lock().unwrap().active = true;
 
-            let countdown_time = 15; // TODO: get this from the knot, or config, or something...
+            let countdown_time = 65; // TODO: get this from the knot, or config, or something...
 
             //// Parse a number if we got one after "play "
             //if msg.content.contains(' ') {
@@ -270,15 +270,15 @@ impl<'a> Handler<'a> {
         countdown: u32,
     ) -> (String, Message) {
         let channel = previous_message.channel_id;
-        let mut countdown = countdown as i32;
-        let countdown_increment: i32 = 5;
+        let mut countdown = countdown as u32;
+        let countdown_increment: u32 = 5;
 
         let paths: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
 
         // always use send_files, because we can send it no files, and that's fine for a normal message it seems
         let mut message = channel
             .send_files(&ctx, paths, |m| {
-                m.content(text.to_string() + &format!("\n({}s remaining)", countdown))
+                m.content(text.to_string() + "\n(" + &format_remaining_time(countdown) + ")")
             })
             .await
             .expect(&format!("Could not send message {}", &text));
@@ -309,7 +309,7 @@ impl<'a> Handler<'a> {
 
             message
                 .edit(ctx, |m| {
-                    m.content(text.to_string() + &format!("\n({}s remaining)", countdown))
+                    m.content(text.to_string() + "\n(" + &format_remaining_time(countdown) + ")")
                 })
                 .await
                 .expect("could not edit");
@@ -396,12 +396,84 @@ async fn main() {
     }
 }
 
+fn format_remaining_time(time_remaining: u32) -> String {
+    match time_remaining {
+        1 => format!("1 second remaining"),
+        t @ 0 | t @ 2..=59 => format!("{} seconds remaining", t),
+        60..=119 => format!("1 minute remaining"),
+        t @ 120..=3599 => format!("{} minutes remaining", t / 60),
+        3600..=7199 => format!("1 hour remaining"),
+        t @ 7200..=86_399 => format!("{} hours remaining", t / (60 * 60)),
+        86_400..=172_799 => format!("1 day remaining"),
+        t => format!("{} days remaining", t / (60 * 60 * 24)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
     //use super::*;
+
+    use crate::format_remaining_time;
 
     #[test]
     fn basic_story() {
         // TODO: split up the code above so the pieces of it are testable.
+    }
+
+    #[test]
+    fn format_remaining_time_tests() {
+        let minute = 60;
+        let hour = minute * 60;
+        let day = hour * 24;
+        assert_eq!(format_remaining_time(0), "0 seconds remaining".to_string());
+        assert_eq!(format_remaining_time(1), "1 second remaining".to_string());
+        assert_eq!(format_remaining_time(2), "2 seconds remaining".to_string());
+        assert_eq!(
+            format_remaining_time(59),
+            "59 seconds remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(minute),
+            "1 minute remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(minute + 5),
+            "1 minute remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(minute + 59),
+            "1 minute remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(2 * minute),
+            "2 minutes remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(2 * minute + 59),
+            "2 minutes remaining".to_string()
+        );
+        assert_eq!(format_remaining_time(hour), "1 hour remaining".to_string());
+        assert_eq!(
+            format_remaining_time(hour + 1),
+            "1 hour remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(2 * hour + 1),
+            "2 hours remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(23 * hour + 59),
+            "23 hours remaining".to_string()
+        );
+        assert_eq!(format_remaining_time(day), "1 day remaining".to_string());
+        assert_eq!(
+            format_remaining_time(day + hour),
+            "1 day remaining".to_string()
+        );
+        assert_eq!(
+            format_remaining_time(2 * day + hour),
+            "2 days remaining".to_string()
+        );
     }
 }

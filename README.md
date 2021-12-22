@@ -3,14 +3,29 @@
 
 Goals:
 
+v0.1
+
 - [x] basic story features
 - [x] show options and associated text
 - [x] images and other attachments
+- [x] play only one game at a time, and have a stop command
+- [ ] support time scales that are larger than one minute (time formatting)
+    - and tick the timer appropriately depending on time scale.
+    - and have a way to set these per story, or on the bot
+- [ ] stories as their own directories, automatically imported
+
+v0.2
+
 - [ ] emoji validation
 - [ ] restart from the middle
+- [ ] pause/resume commands
 - [ ] variables
 - [ ] generate text from data, for example a health bar made of heart emojis. Maybe ink can do this without special code though, so we'll see.
+
+v0.3
+
 - [ ] a way to show which options you would have had, but are unavailable, so people want to play again.
+  -  maybe this is a summary of the game, or saying "X branches were not taken", or "found 3/5 endings".
 
 See [the runner readme](runner/README.md) to see which parts of the .ink format are supported.
 

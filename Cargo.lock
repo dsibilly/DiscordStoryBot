@@ -222,6 +222,7 @@ name = "discord_story_bot"
 version = "0.1.0"
 dependencies = [
  "ink_runner",
+ "pretty_assertions",
  "serenity",
  "structopt",
  "tokio",
