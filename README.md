@@ -58,7 +58,7 @@ After=multi-user.target
 
 [Service]
 WorkingDirectory=/home/pi
-ExecStart=/home/pi/discord_story_bot client_ids/client_id.txt stories/story1.ink
+ExecStart=/home/pi/discord_story_bot client_ids/client_id.txt
 Restart=always
 RestartSec=10s
 

@@ -5,11 +5,9 @@
     clippy::or_fun_call
 )]
 
-// TODO: make each story a directory, with images in its own img, so the story only has to worry about relative paths
-//       import all stories that are within the stories directory, where each one is its own directory
+// TODO: choose story beat time in tags (or at least a multiplier or something)
 // TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
 // TODO: 'pause' and 'resume' commands
-// TODO: choose story beat time in tags (or at least a multiplier or something)
 // TODO: save the state whenever it changes, and be able to load it up again (per channel)
 // TODO: point to a directory, or auto-import all stories nested within "stories" (https://rust-lang-nursery.github.io/rust-cookbook/file/dir.html#recursively-find-all-files-with-given-predicate)
 // TODO: set which hours the bot is allowed to run
