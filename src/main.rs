@@ -63,7 +63,9 @@ struct Opt {
 struct Handler<'a> {
     game: Mutex<Game<'a>>,
     prefix: Mutex<String>,
-    stories: BTreeMap<String, (String, InkStory<'a>)>, /// title (path, InkStory)
+
+    /// title (path, InkStory)
+    stories: BTreeMap<String, (String, InkStory<'a>)>,
 }
 
 #[async_trait]
