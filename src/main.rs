@@ -8,6 +8,7 @@
 // TODO: choose story beat time in tags (or at least a multiplier or something)
 //       maybe the top tag is the default, but it can be overwritten by knot tags?
 //       maybe there's a discord command `!play story1 30s` that overrides it?
+//       Implement top tag first, then play command, then knot override if there's still a desire.
 // TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
 // TODO: 'pause' and 'resume' commands
 // TODO: save the state whenever it changes, and be able to load it up again (per channel)
@@ -84,7 +85,7 @@ impl<'a> EventHandler for Handler<'a> {
                     &ctx.http,
                     "To start a story type something like \"".to_string()
                         + &prefix
-                        + "play story1\", where \"story1\" is the story you would like to run.\n\
+                        + "play story1 duration\", where \"story1\" is the story you would like to run, and \"duration\" is the number of seconds that each story beat should last (defaults to 60).\n\
                 To change the prefix, use the \""
                         + &prefix
                         + "prefix\" command",
@@ -149,15 +150,22 @@ impl<'a> EventHandler for Handler<'a> {
                         &ctx.http,
                         "To play a story, type something like \"".to_string()
                             + &prefix
-                            + "play story_name\", where \"story_name\" is the one of the following:\n- " + &stories_with_authors.join("\n- "),
+                            + "play story_name duration\", where \"duration\" is the number of seconds that each story beat should last (defaults to 60), and \"story_name\" is the one of the following:\n- " + &stories_with_authors.join("\n- "),
                     )
                     .await
-                    .expect("Could not send prefix information text");
+                    .expect("Could not send play information text");
                 return;
             }
 
-            // Select a story
-            let story_name = msg.content.split_once(' ').unwrap().1.to_string();
+            // Select a story, and set the duration
+            let play_args = msg.content.split(' ').collect::<Vec<_>>();
+            let story_name = play_args[1].to_string();
+            let countdown_time = if play_args.len() >= 3 {
+                play_args[2].parse::<u32>().unwrap_or(60)
+            } else {
+                60
+            };
+
             let story = self.stories[&story_name].1.clone();
             let path: PathBuf = self.stories.get(&story_name).unwrap().0.clone().into();
             self.game.lock().unwrap().set_story(story, &path);
@@ -173,8 +181,6 @@ impl<'a> EventHandler for Handler<'a> {
             }
 
             self.game.lock().unwrap().active = true;
-
-            let countdown_time = 15; // TODO: get this from the knot, or config, or something...
 
             //// Parse a number if we got one after "play "
             //if msg.content.contains(' ') {
