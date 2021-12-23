@@ -2,6 +2,7 @@
 
 use ink_runner::ink_parser::InkStory;
 use ink_runner::ink_runner::StoryRunner;
+use std::path::PathBuf;
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
@@ -10,6 +11,7 @@ pub struct Game<'a> {
     lines_with_tags: Vec<(String, Vec<String>)>,
     choices: Vec<String>,
     config: GameConfig,
+    story_path: PathBuf,
     pub active: bool,  // TODO: should this be private? Or on Handler, maybe?
     pub stopped: bool, // TODO: should this be private? Or on Handler, maybe?
     pub paused: bool,  // TODO: should this be private? Or on Handler, maybe?
@@ -22,12 +24,13 @@ struct GameConfig {
 }
 
 impl<'a> Game<'a> {
-    pub fn new(content: &str, knot: Option<String>) -> Self {
+    pub fn new(content: &str, knot: Option<String>, path: &PathBuf) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
             lines_with_tags: vec![],
             choices: vec![],
             config: Default::default(),
+            story_path: path.clone(),
             active: false,
             stopped: false,
             paused: false,
@@ -89,6 +92,7 @@ impl<'a> Game<'a> {
             .map(|(_, tags)| tags)
             .flatten()
             .filter_map(|s| get_img_tag_image(&s))
+            .map(|s| self.story_path.to_string_lossy().to_string() + "/" + &s)
             .collect()
     }
 
@@ -96,8 +100,9 @@ impl<'a> Game<'a> {
         self.runner.set_knot(knot);
     }
 
-    pub fn set_story(&mut self, story: InkStory<'a>) {
+    pub fn set_story(&mut self, story: InkStory<'a>, path: &PathBuf) {
         self.runner.replace_story(story);
+        self.story_path = path.clone();
         self.reset(None);
     }
 
@@ -137,23 +142,25 @@ impl<'a> Game<'a> {
 }
 
 pub fn get_img_tag_image(tag: &str) -> Option<String> {
-    dbg!(tag);
-    tag.strip_prefix("img:")
-        .map(|path| "img/".to_string() + path.trim())
+    tag.strip_prefix("img:").map(|path| path.trim().to_string())
 }
 
 pub fn is_hide_choices_tag(tag: &str) -> bool {
-    dbg!(tag);
     tag == "hide_choices"
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn basic_story() {
-        let mut game = Game::new(include_str!("../stories/basic_story.ink"), None);
+        let mut game = Game::new(
+            include_str!("../stories/basic_story/basic_story.ink"),
+            None,
+            &"".to_string().into(),
+        );
         dbg!(&game.lines_as_text());
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
@@ -167,17 +174,22 @@ mod tests {
 
     #[test]
     fn hide_choices() {
-        let game = Game::new(include_str!("../stories/basic_story.ink"), None);
+        let game = Game::new(
+            include_str!("../stories/basic_story/basic_story.ink"),
+            None,
+            &"".to_string().into(),
+        );
         assert_eq!(game.config.hide_choices, false);
-        let game = Game::new(include_str!("../stories/hide_choices.ink"), None);
+        let game = Game::new(
+            include_str!("../stories/hide_choices/hide_choices.ink"),
+            None,
+            &"".to_string().into(),
+        );
         assert_eq!(game.config.hide_choices, true);
     }
 
     #[test]
     fn parse_images() {
-        assert_eq!(
-            get_img_tag_image("img:A.png"),
-            Some("img/A.png".to_string())
-        );
+        assert_eq!(get_img_tag_image("img:A.png"), Some("A.png".to_string()));
     }
 }

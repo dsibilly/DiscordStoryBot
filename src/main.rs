@@ -6,15 +6,17 @@
 )]
 
 // TODO: make each story a directory, with images in its own img, so the story only has to worry about relative paths
+//       import all stories that are within the stories directory, where each one is its own directory
 // TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
-// TODO: import all stories that are within the stories directory, where each one is its own directory
-// TODO: if no command line args are used, use a config file, or maybe just _always_ use a config file
-//       or maybe I can just put all that in systemctl file? (this works for now)
 // TODO: 'pause' and 'resume' commands
 // TODO: choose story beat time in tags (or at least a multiplier or something)
 // TODO: save the state whenever it changes, and be able to load it up again (per channel)
 // TODO: point to a directory, or auto-import all stories nested within "stories" (https://rust-lang-nursery.github.io/rust-cookbook/file/dir.html#recursively-find-all-files-with-given-predicate)
 // TODO: set which hours the bot is allowed to run
+// TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
+// TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
+// TODO: say what the previous choice was (as long as it's not in []s, of course)
+// TODO: and support having the emoji within []'s
 
 use std::cmp::min;
 use std::collections::BTreeMap;
@@ -38,17 +40,14 @@ use discord_story_bot::Game;
 use ink_runner::ink_parser::InkStory;
 use ink_runner::ink_runner::import_story;
 use unicode_segmentation::UnicodeSegmentation;
+use walkdir::WalkDir;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Discord Story Bot", about = "about: TODO")]
 struct Opt {
     /// client token file path
     #[structopt(parse(from_os_str))]
-    token_file: PathBuf,
-
-    /// .ink story file paths
-    #[structopt(parse(from_os_str))]
-    stories: Vec<PathBuf>,
+    token_file: PathBuf, // TODO: read from file instead
 
     /// Optional saved state file to load.
     #[structopt(short, long, parse(from_os_str))]
@@ -60,13 +59,13 @@ struct Opt {
 
     /// whether to pin the story messages
     #[structopt(long)]
-    do_not_pin: bool,
+    do_not_pin: bool, // TODO: make this a config option, like prefix. Default to pinning.
 }
 
 struct Handler<'a> {
     game: Mutex<Game<'a>>,
     prefix: Mutex<String>,
-    stories: BTreeMap<String, InkStory<'a>>,
+    stories: BTreeMap<String, (String, InkStory<'a>)>, /// title (path, InkStory)
 }
 
 #[async_trait]
@@ -133,6 +132,7 @@ impl<'a> EventHandler for Handler<'a> {
                         "\"{}\"{}",
                         s,
                         self.stories[&s.to_string()]
+                            .1
                             .get_author()
                             .map(|a| format!(" by {}", a))
                             .unwrap_or("".to_string())
@@ -156,8 +156,9 @@ impl<'a> EventHandler for Handler<'a> {
 
             // Select a story
             let story_name = msg.content.split_once(' ').unwrap().1.to_string();
-            let story = self.stories[&story_name].clone();
-            self.game.lock().unwrap().set_story(story);
+            let story = self.stories[&story_name].1.clone();
+            let path: PathBuf = self.stories.get(&story_name).unwrap().0.clone().into();
+            self.game.lock().unwrap().set_story(story, &path);
 
             // See if there is already a game running
             if self.game.lock().unwrap().active {
@@ -171,7 +172,7 @@ impl<'a> EventHandler for Handler<'a> {
 
             self.game.lock().unwrap().active = true;
 
-            let countdown_time = 65; // TODO: get this from the knot, or config, or something...
+            let countdown_time = 15; // TODO: get this from the knot, or config, or something...
 
             //// Parse a number if we got one after "play "
             //if msg.content.contains(' ') {
@@ -200,8 +201,6 @@ impl<'a> EventHandler for Handler<'a> {
                     .collect::<Vec<_>>();
 
                 let images: Vec<String> = self.game.lock().unwrap().images();
-                dbg!(&images);
-                dbg!(self.game.lock().unwrap().lines_and_tags());
 
                 let (choice, story_message) = self
                     .do_story_beat(
@@ -258,13 +257,12 @@ impl<'a> EventHandler for Handler<'a> {
 }
 
 impl<'a> Handler<'a> {
-    // TODO: should this take in the whole story instead of just bits? Or get it from self or something?
     async fn do_story_beat(
         &self,
         ctx: &Context,
         previous_message: &Message,
         text: &str,
-        paths: Vec<String>, // TODO: make this more generic
+        images: Vec<String>, // TODO: make this more generic
         approved_emoji: &[String],
         choices: &[String],
         countdown: u32,
@@ -273,11 +271,13 @@ impl<'a> Handler<'a> {
         let mut countdown = countdown as u32;
         let countdown_increment: u32 = 5;
 
-        let paths: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+        let images: Vec<&str> = images.iter().map(|s| s.as_str()).collect();
 
-        // always use send_files, because we can send it no files, and that's fine for a normal message it seems
+        dbg!(&images);
+
+        // Always use send_files, because we can send it no files, and that's fine for a normal message it seems
         let mut message = channel
-            .send_files(&ctx, paths, |m| {
+            .send_files(&ctx, images, |m| {
                 m.content(text.to_string() + "\n(" + &format_remaining_time(countdown) + ")")
             })
             .await
@@ -296,6 +296,8 @@ impl<'a> Handler<'a> {
                 .expect("could not react to message");
         }
 
+        let mut old_message_content = text.to_string();
+
         // Count Down
         while countdown > 0 {
             let sleep_this_long = min(countdown, countdown_increment);
@@ -307,12 +309,17 @@ impl<'a> Handler<'a> {
                 break;
             }
 
-            message
-                .edit(ctx, |m| {
-                    m.content(text.to_string() + "\n(" + &format_remaining_time(countdown) + ")")
-                })
-                .await
-                .expect("could not edit");
+            let new_message_content =
+                text.to_string() + "\n(" + &format_remaining_time(countdown) + ")";
+
+            // Only send a message update if the message content is different than what we would have sent before
+            if new_message_content != old_message_content {
+                message
+                    .edit(ctx, |m| m.content(&new_message_content))
+                    .await
+                    .expect("could not edit");
+                old_message_content = new_message_content.to_string();
+            }
         }
 
         // Return the winning emoji
@@ -347,46 +354,42 @@ impl<'a> Handler<'a> {
     }
 }
 
-// TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
-// TODO: maybe if it's a single letter, we can find the emoji version of that letter?
-// TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
-
-// TODO: say what the previous choice was (as long as it's not in []s, of course)
-// TODO: and support having the emoji within []'s
-
 #[tokio::main]
 async fn main() {
     let opt: Opt = Opt::from_args();
     println!("{:#?}", opt);
 
-    let story = fs::read_to_string(opt.stories[0].clone()).unwrap(); // TODO: handle multiple
-                                                                     //let story = import_story(&fs::read_to_string(opt.stories[0].clone()).unwrap()); // TODO: handle multiple
+    let stories: Vec<(PathBuf, String)> = get_ink_files_with_paths();
+
+    let story_text = fs::read_to_string(
+        stories[0].0.to_string_lossy().to_string() + "/" + &stories[0].1 + ".ink",
+    )
+    .unwrap();
+
     let token = fs::read_to_string(opt.token_file).unwrap();
 
-    let game = Game::new(&story, opt.knot).set_do_not_pin(opt.do_not_pin);
+    let game = Game::new(&story_text, opt.knot, &stories[0].0).set_do_not_pin(opt.do_not_pin);
+
+    let stories = stories.iter().map(|(dir, file)| {
+        let full_path = dir.to_string_lossy().to_string() + "/" + &file + ".ink";
+
+        (
+            file.to_string(),
+            (
+                dir.to_string_lossy().to_string(),
+                import_story(
+                    &fs::read_to_string(&full_path)
+                        .expect(&format!("could not read story {:?}", &full_path)),
+                ),
+            ),
+        )
+    });
 
     let mut client = Client::builder(token)
         .event_handler(Handler {
             game: Mutex::new(game),
             prefix: Mutex::new("!".to_string()),
-
-            // TODO: This should be in a config file, or CLI args or something...
-            stories: opt
-                .stories
-                .iter()
-                .map(|s| {
-                    (
-                        s.file_stem()
-                            .expect(&format!("invalid file: {}", s.as_path().to_str().unwrap()))
-                            .to_string_lossy()
-                            .to_string(),
-                        import_story(
-                            &fs::read_to_string(&s)
-                                .expect(&format!("could not read story {:?}", &s)),
-                        ),
-                    )
-                })
-                .collect(),
+            stories: stories.collect(),
         })
         .await
         .expect("Error creating client");
@@ -409,10 +412,31 @@ fn format_remaining_time(time_remaining: u32) -> String {
     }
 }
 
+fn get_ink_files_with_paths() -> Vec<(PathBuf, String)> {
+    let mut result = vec![];
+
+    for entry in WalkDir::new("./stories/")
+        .follow_links(true)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        if entry.file_name().to_string_lossy().ends_with(".ink") {
+            let path = entry.path();
+            let directory = path.parent().unwrap().to_path_buf();
+            result.push((
+                directory,
+                path.file_stem().unwrap().to_string_lossy().to_string(),
+            ));
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     use pretty_assertions::assert_eq;
-    //use super::*;
 
     use crate::format_remaining_time;
 
@@ -474,6 +498,14 @@ mod tests {
         assert_eq!(
             format_remaining_time(2 * day + hour),
             "2 days remaining".to_string()
+        );
+    }
+
+    #[test]
+    fn get_ink_tests() {
+        assert_eq!(
+            get_ink_files_with_paths()[0],
+            ("./stories/basic_story".into(), "basic_story".to_string())
         );
     }
 }

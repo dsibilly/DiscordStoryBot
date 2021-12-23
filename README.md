@@ -9,10 +9,11 @@ v0.1
 - [x] show options and associated text
 - [x] images and other attachments
 - [x] play only one game at a time, and have a stop command
-- [ ] support time scales that are larger than one minute (time formatting)
-    - and tick the timer appropriately depending on time scale.
-    - and have a way to set these per story, or on the bot
-- [ ] stories as their own directories, automatically imported
+- [ ] timer tools
+  - [x] support time scales that are larger than one minute (time formatting)
+  - [x] and tick the timer appropriately depending on time scale.
+  - [ ] and have a way to set these per story, or on the bot
+- [x] stories as their own directories, automatically imported
 
 v0.2
 
