@@ -6,6 +6,8 @@
 )]
 
 // TODO: choose story beat time in tags (or at least a multiplier or something)
+//       maybe the top tag is the default, but it can be overwritten by knot tags?
+//       maybe there's a discord command `!play story1 30s` that overrides it?
 // TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
 // TODO: 'pause' and 'resume' commands
 // TODO: save the state whenever it changes, and be able to load it up again (per channel)

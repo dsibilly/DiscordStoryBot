@@ -12,9 +12,9 @@ pub struct Game<'a> {
     choices: Vec<String>,
     config: GameConfig,
     story_path: PathBuf,
-    pub active: bool,  // TODO: should this be private? Or on Handler, maybe?
+    pub active: bool, // TODO: should this be private? Or on Handler, maybe? (and should these be an enum?)
     pub stopped: bool, // TODO: should this be private? Or on Handler, maybe?
-    pub paused: bool,  // TODO: should this be private? Or on Handler, maybe?
+    pub paused: bool, // TODO: should this be private? Or on Handler, maybe?
 }
 
 #[derive(Default)]
