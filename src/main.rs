@@ -5,6 +5,7 @@
     clippy::or_fun_call
 )]
 
+// TODO: hide stories that are just for testing
 // TODO: choose story beat time in tags (or at least a multiplier or something)
 //       maybe the top tag is the default, but it can be overwritten by knot tags?
 //       maybe there's a discord command `!play story1 30s` that overrides it?

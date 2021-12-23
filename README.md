@@ -15,6 +15,8 @@ v0.1
   - [x] and have a way to set these when playing a story
 - [x] stories as their own directories, automatically imported
 - [ ] grab the story title from the tag (if there is one)
+  - maybe you choose the story with a number, so we can support titles with spaces in them
+- [ ] hide test stories, or make them their own category
 
 v0.2
 

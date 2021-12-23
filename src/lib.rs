@@ -165,7 +165,7 @@ mod tests {
         dbg!(&game.choices_as_strings());
         dbg!(&game.is_over());
 
-        dbg!(game.choose("downtown?"));
+        dbg!(game.choose("🏢 downtown?"));
         dbg!(&game.lines_as_text());
         dbg!(&game.choices_as_strings());
 
