@@ -256,6 +256,7 @@ impl<'a> EventHandler for Handler<'a> {
         } else if msg.content == (prefix.to_string() + "stop") {
             dbg!("STORY IS STOPPING");
             self.game.lock().unwrap().stopped = true;
+            self.game.lock().unwrap().active = false;
         }
     }
 

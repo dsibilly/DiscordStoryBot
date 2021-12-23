@@ -46,6 +46,25 @@ impl<'a> InkStory<'a> {
             Some(authors[0].clone())
         }
     }
+
+    pub fn get_title(&self) -> Option<String> {
+        dbg!(&self.global_tags);
+
+        let titles: Vec<String> = self
+            .global_tags
+            .iter()
+            .map(|&t| get_title_from_tag(t))
+            .flatten()
+            .collect();
+
+        dbg!(&titles);
+
+        if titles.is_empty() {
+            None
+        } else {
+            Some(titles[0].clone())
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
@@ -469,4 +488,8 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
 
 pub fn get_author_from_tag(tag: &str) -> Option<String> {
     tag.strip_prefix("author:").map(|s| s.trim().to_string())
+}
+
+pub fn get_title_from_tag(tag: &str) -> Option<String> {
+    tag.strip_prefix("title:").map(|s| s.trim().to_string())
 }
