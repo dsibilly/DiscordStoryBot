@@ -1,4 +1,5 @@
 # author: [test story]
+# hidden
 
 # img:A.png
 A

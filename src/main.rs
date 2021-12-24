@@ -37,7 +37,7 @@ use serenity::prelude::{Context, EventHandler};
 
 use structopt::StructOpt;
 
-use discord_story_bot::Game;
+use discord_story_bot::{story_has_hidden_tag, Game};
 
 use ink_runner::ink_parser::InkStory;
 use ink_runner::ink_runner::import_story;
@@ -130,6 +130,7 @@ impl<'a> EventHandler for Handler<'a> {
             let stories = self.stories.keys().map(|k| k.as_str()).collect::<Vec<_>>();
             let stories_with_authors: Vec<String> = stories
                 .iter()
+                .filter(|&s| !story_has_hidden_tag(&self.stories[&s.to_string()].1))
                 .map(|&s| {
                     format!(
                         "`{}`{}",

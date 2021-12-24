@@ -131,7 +131,7 @@ impl<'a> Game<'a> {
             .story
             .global_tags
             .iter()
-            .any(|&s| is_hide_choices_tag(s));
+            .any(|&s| s == "hide_choices");
 
         // TODO: scan through all #img: tags to make sure those files exist, so it's caught early
     }
@@ -145,8 +145,8 @@ pub fn get_img_tag_image(tag: &str) -> Option<String> {
     tag.strip_prefix("img:").map(|path| path.trim().to_string())
 }
 
-pub fn is_hide_choices_tag(tag: &str) -> bool {
-    tag == "hide_choices"
+pub fn story_has_hidden_tag(story: &InkStory<'_>) -> bool {
+    story.global_tags.iter().any(|&s| s == "hidden")
 }
 
 #[cfg(test)]

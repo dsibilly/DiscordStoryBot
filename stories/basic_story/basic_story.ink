@@ -1,5 +1,6 @@
 # author: [test story]
 # title: debug - basic_story
+# hidden
 
 Let's go to paris. #main line tag
 + 🏢 downtown?

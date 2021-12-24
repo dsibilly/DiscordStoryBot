@@ -1,4 +1,5 @@
 # author: [test story]
+# hidden
 
 VAR health = 100
 

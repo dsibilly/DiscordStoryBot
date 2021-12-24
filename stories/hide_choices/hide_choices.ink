@@ -1,5 +1,6 @@
 # author: [test story]
 # hide_choices
+# hidden
 
 VAR health = 100
 
