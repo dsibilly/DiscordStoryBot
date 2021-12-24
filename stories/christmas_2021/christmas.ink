@@ -3,6 +3,7 @@
 
 Christmas🎄 has just ended and it's almost new years. You've come to the North Pole to lend a hand to the hardworking elves. Santa has had a rough year, only half the amount of supplies that were meant to be delivered to the North Pole for next year have arrived!
 You are approached by an elderly Christmas🎄 elf. He slouches over a cane and licks his lips as he begins to speak, "Greetings youngins, my name is Larry. I'm glad you're here to help! I'm afraid the North Pole has fallen in disrepair. We will need a good head start on things if there is to be a Christmas🎄 next year."
+The emoji feedback you provide for Larry will help him make decisions and guide the course of Christmas🎄. It's up to you to help Larry get Christmas🎄 back on track for the children.
 
  * 😟
    -> worried_task_1_1
