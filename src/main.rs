@@ -84,12 +84,11 @@ impl<'a> EventHandler for Handler<'a> {
             channel
                 .say(
                     &ctx.http,
-                    "To start a story type something like \"".to_string()
+                    "To start a story type something like `".to_string()
                         + &prefix
-                        + "play story1 duration\", where \"story1\" is the story you would like to run, and \"duration\" is the number of seconds that each story beat should last (defaults to 60).\n\
-                To change the prefix, use the \""
+                        + "play story1 duration`, where `story1` is the story you would like to run, and `duration` is the number of seconds that each story beat should last (defaults to 60).\n\nTo change the prefix, use the `"
                         + &prefix
-                        + "prefix\" command",
+                        + "prefix` command",
                 )
                 .await
                 .expect("Could not send help text");
@@ -116,11 +115,11 @@ impl<'a> EventHandler for Handler<'a> {
                 channel
                     .say(
                         &ctx.http,
-                        "To set a different prefix, type something like \"".to_string()
+                        "To set a different prefix, type something like `".to_string()
                             + &prefix
-                            + "prefix +\", where \"+\" is the new prefix to use, instead of \""
+                            + "prefix +`, where `+` is the new prefix to use, instead of `"
                             + &prefix
-                            + "\".",
+                            + "`.",
                     )
                     .await
                     .expect("Could not send prefix information text");
@@ -133,7 +132,7 @@ impl<'a> EventHandler for Handler<'a> {
                 .iter()
                 .map(|&s| {
                     format!(
-                        "\"{}\"{}",
+                        "`{}`{}",
                         s,
                         self.stories[&s.to_string()]
                             .1
@@ -149,9 +148,9 @@ impl<'a> EventHandler for Handler<'a> {
                 channel
                     .say(
                         &ctx.http,
-                        "To play a story, type something like \"".to_string()
+                        "To play a story, type something like `".to_string()
                             + &prefix
-                            + "play story_name duration\", where \"duration\" is the number of seconds that each story beat should last (defaults to 60), and \"story_name\" is the one of the following:\n- " + &stories_with_authors.join("\n- "),
+                            + "play story_name duration`, where `duration` is the number of seconds that each story beat should last (defaults to 60), and `story_name` is the one of the following:\n\n- " + &stories_with_authors.join("\n- "),
                     )
                     .await
                     .expect("Could not send play information text");
@@ -288,7 +287,7 @@ impl<'a> Handler<'a> {
         // Always use send_files, because we can send it no files, and that's fine for a normal message it seems
         let mut message = channel
             .send_files(&ctx, images, |m| {
-                m.content(text.to_string() + "\n(" + &format_remaining_time(countdown) + ")")
+                m.content(text.to_string() + "\n\n(" + &format_remaining_time(countdown) + ")")
             })
             .await
             .expect(&format!("Could not send message {}", &text));
@@ -320,7 +319,7 @@ impl<'a> Handler<'a> {
             }
 
             let new_message_content =
-                text.to_string() + "\n(" + &format_remaining_time(countdown) + ")";
+                text.to_string() + "\n\n(" + &format_remaining_time(countdown) + ")";
 
             // Only send a message update if the message content is different than what we would have sent before
             if new_message_content != old_message_content {
