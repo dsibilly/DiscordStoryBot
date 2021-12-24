@@ -5,15 +5,12 @@
     clippy::or_fun_call
 )]
 
-// TODO: hide stories that are just for testing
 // TODO: choose story beat time in tags (or at least a multiplier or something)
 //       maybe the top tag is the default, but it can be overwritten by knot tags?
 //       maybe there's a discord command `!play story1 30s` that overrides it?
 //       Implement top tag first, then play command, then knot override if there's still a desire.
-// TODO: make the client id default to client_ids/client_id.txt if it's not included (on a flag)
 // TODO: 'pause' and 'resume' commands
 // TODO: save the state whenever it changes, and be able to load it up again (per channel)
-// TODO: point to a directory, or auto-import all stories nested within "stories" (https://rust-lang-nursery.github.io/rust-cookbook/file/dir.html#recursively-find-all-files-with-given-predicate)
 // TODO: set which hours the bot is allowed to run
 // TODO: verify the story at the start to make sure all choices in it use discord-valid emoji (https://emojipedia.org/emoji-13.1/)
 // TODO: save state always, and look for state when starting with a flag, whatever makes it easy to restart from where you left off if the server crashes
@@ -49,7 +46,7 @@ use walkdir::WalkDir;
 struct Opt {
     /// client token file path
     #[structopt(parse(from_os_str))]
-    token_file: PathBuf, // TODO: read from file instead
+    token_file: PathBuf,
 
     /// Optional saved state file to load.
     #[structopt(short, long, parse(from_os_str))]
@@ -182,15 +179,6 @@ impl<'a> EventHandler for Handler<'a> {
             }
 
             self.game.lock().unwrap().active = true;
-
-            //// Parse a number if we got one after "play "
-            //if msg.content.contains(' ') {
-            //    let subs = msg.content.split(' ').collect::<Vec<&str>>();
-            //    dbg!(subs[1]);
-            //    if let Ok(num) = subs[1].parse::<u32>() {
-            //        countdown_time = num;
-            //    }
-            //}
 
             let mut most_recent_message = msg.clone();
 
