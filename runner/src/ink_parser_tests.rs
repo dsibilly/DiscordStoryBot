@@ -4,7 +4,8 @@ use crate::ink_lexer::InkToken::{Choice, Dialog, Divert, KnotTitle, Tag, Variabl
 use crate::ink_lexer::{lex, strip_comments};
 use crate::ink_parser;
 use crate::ink_parser::{
-    get_author_from_tag, lexed_to_parsed, DialogLine, InkStory, Knot, KnotEnd, Line, VariableValue,
+    get_author_from_tag, get_title_from_tag, lexed_to_parsed, DialogLine, InkStory, Knot, KnotEnd,
+    Line, VariableValue,
 };
 use pretty_assertions::assert_eq;
 use std::collections::BTreeMap;
@@ -687,5 +688,22 @@ fn parse_author() {
     assert_eq!(
         parsed.get_author(),
         Some("author name goes here".to_string())
+    );
+}
+
+#[test]
+fn parse_title() {
+    assert_eq!(
+        get_title_from_tag("title: title goes here"),
+        Some("title goes here".to_string())
+    );
+
+    let string = strip_comments(include_str!("../samples/author.ink"));
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed.get_title(),
+        Some("The Title of the Story".to_string())
     );
 }

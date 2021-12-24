@@ -1,9 +1,10 @@
 # author: [test story]
+# title: debug - basic_story
 
 Let's go to paris. #main line tag
-+ downtown?
++ 🏢 downtown?
 -> downtown
-+ suburbs?
++ 🏡 suburbs?
 -> suburbs
 
 
