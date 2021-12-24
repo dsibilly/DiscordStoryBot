@@ -288,7 +288,7 @@ impl<'a> Handler<'a> {
         // Always use send_files, because we can send it no files, and that's fine for a normal message it seems
         let mut message = channel
             .send_files(&ctx, images, |m| {
-                m.content(text.to_string() + "\n(" + &format_remaining_time(countdown) + ")")
+                m.content(text.to_string() + "\n\n(" + &format_remaining_time(countdown) + ")")
             })
             .await
             .expect(&format!("Could not send message {}", &text));
@@ -320,7 +320,7 @@ impl<'a> Handler<'a> {
             }
 
             let new_message_content =
-                text.to_string() + "\n(" + &format_remaining_time(countdown) + ")";
+                text.to_string() + "\n\n(" + &format_remaining_time(countdown) + ")";
 
             // Only send a message update if the message content is different than what we would have sent before
             if new_message_content != old_message_content {
