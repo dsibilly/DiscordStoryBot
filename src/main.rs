@@ -503,7 +503,7 @@ mod tests {
     fn get_ink_tests() {
         assert_eq!(
             get_ink_files_with_paths()[0],
-            ("./stories/basic_story".into(), "basic_story".to_string())
+            ("./stories".into(), "basic_story".to_string())
         );
     }
 }

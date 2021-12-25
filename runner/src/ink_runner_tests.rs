@@ -1,7 +1,6 @@
 #![cfg(test)]
 
-use crate::ink_parser::DialogLine;
-use crate::ink_runner::{StoryRunner, StoryState};
+use crate::ink_runner::{OutputLine, StoryRunner, StoryState};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -172,25 +171,25 @@ fn run_bot_story() {
         vec![
             "LONDON, 1872".into(),
             "Residence of Monsieur Phileas Fogg.".into(),
-            DialogLine {
-                text: "It was cool downtown.",
-                tags: vec!["downtown tag", "tag ya"],
+            OutputLine {
+                text: "It was cool downtown.".into(),
+                tags: vec!["downtown tag".into(), "tag ya".into()],
             },
-            DialogLine {
-                text: "Suburbs were cool too.",
-                tags: vec!["suburbs tag", "tag too"],
+            OutputLine {
+                text: "Suburbs were cool too.".into(),
+                tags: vec!["suburbs tag".into(), "tag too".into()],
             },
-            DialogLine {
-                text: "Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides!",
-                tags: vec!["health +1", "tag1", "tag2"],
+            OutputLine {
+                text: "Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides!".into(),
+                tags: vec!["health +1".into(), "tag1".into(), "tag2".into()],
             },
-            DialogLine {
-                text: "health: \"{health}\"",
+            OutputLine {
+                text: "health: \"{health}\"".into(),
                 tags: vec![]
             },
-            DialogLine {
-                text: "\"Passepartout,\" said he. \"We are going around the world!\"",
-                tags: vec!["tag 4", "tag 3"],
+            OutputLine {
+                text: "\"Passepartout,\" said he. \"We are going around the world!\"".into(),
+                tags: vec!["tag 4".into(), "tag 3".into()],
             },
         ]
     );

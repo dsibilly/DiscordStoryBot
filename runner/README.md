@@ -27,7 +27,8 @@ Differences from the official implementation:
 - [x] choices where you don't show the text
 
 ## v0.2
-- [ ] `[?]`
+- [x] `[?]`
+  - `both [only pre-choice] only post-choice` 
 - [ ] conditional choices `{}`
 - [ ] logical operators AND `&&`, OR `||`, and NOT `not`
 - [ ] not as exclamation point: `!`

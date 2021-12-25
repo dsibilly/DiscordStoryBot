@@ -119,7 +119,8 @@ fn full_test() {
                 "__INTRO__".to_string(),
                 Knot {
                     end: KnotEnd::Choices(vec![ink_parser::Choice {
-                        text: "go",
+                        choice_text: "go".to_string(),
+                        shown_text: "go".to_string(),
                         ..Default::default()
                     }]),
                     ..Default::default()
@@ -155,11 +156,13 @@ fn parse_choices() {
                 Knot {
                     end: KnotEnd::Choices(vec![
                         ink_parser::Choice {
-                            text: "go",
+                            choice_text: "go".to_string(),
+                            shown_text: "go".to_string(),
                             ..Default::default()
                         },
                         ink_parser::Choice {
-                            text: "stay",
+                            choice_text: "stay".to_string(),
+                            shown_text: "stay".to_string(),
                             ..Default::default()
                         }
                     ]),
@@ -197,13 +200,15 @@ fn parse_london() {
                         "\"Passepartout,\" said he. \"We are going around the world!\"".into()],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "❤",
+                                choice_text: "❤".to_string(),
+                                shown_text: "❤".to_string(),
                                 lines: vec!["I was utterly astonished.".into()],
                                 divert: "astonished".into(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "🙂",
+                                choice_text: "🙂".to_string(),
+                                shown_text: "🙂".to_string(),
                                 divert: "nod".into(),
                                 ..Default::default()
                             },
@@ -246,13 +251,15 @@ fn parse_london2() {
                         lines: vec!["in london".into()],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "heart",
+                                choice_text: "heart".to_string(),
+                                shown_text: "heart".to_string(),
                                 lines: vec!["huh!?".into()],
                                 divert: "astonished".into(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "happy",
+                                choice_text: "happy".to_string(),
+                                shown_text: "happy".to_string(),
                                 divert: "END".into(),
                                 ..Default::default()
                             },
@@ -266,7 +273,8 @@ fn parse_london2() {
                         title: "astonished".to_string(),
                         lines: vec!["wut!".into()],
                         end: KnotEnd::Choices(vec![ink_parser::Choice {
-                            text: "sad",
+                            choice_text: "sad".to_string(),
+                            shown_text: "sad".to_string(),
                             ..Default::default()
                         },]),
                         knot_tags: vec![]
@@ -360,11 +368,13 @@ fn parse_sticky_options() {
                         lines: vec!["cool?".into()],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "no",
+                                choice_text: "no".to_string(),
+                                shown_text: "no".to_string(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "yes",
+                                choice_text: "yes".to_string(),
+                                shown_text: "yes".to_string(),
                                 divert: "bears".into(),
                                 sticky: true,
                                 ..Default::default()
@@ -379,7 +389,8 @@ fn parse_sticky_options() {
                         title: "bears".to_string(),
                         lines: vec![],
                         end: KnotEnd::Choices(vec![ink_parser::Choice {
-                            text: "yeah",
+                            choice_text: "yeah".to_string(),
+                            shown_text: "yeah".to_string(),
                             sticky: true,
                             ..Default::default()
                         }]),
@@ -418,12 +429,14 @@ fn parse_fallbacks() {
                         lines: vec!["sup".into()],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "wut",
+                                choice_text: "wut".to_string(),
+                                shown_text: "wut".to_string(),
                                 divert: "fallback".into(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "wutwut",
+                                choice_text: "wutwut".to_string(),
+                                shown_text: "wutwut".to_string(),
                                 lines: vec!["text".into()],
                                 divert: "fallback".into(),
                                 ..Default::default()
@@ -445,14 +458,14 @@ fn parse_fallbacks() {
                         lines: vec!["sup2".into()],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "wut2",
+                                choice_text: "wut2".to_string(),
+                                shown_text: "wut2".to_string(),
                                 divert: "fallback2".into(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
                                 divert: "END".into(),
                                 sticky: true,
-                                show_text: true,
                                 ..Default::default()
                             }
                         ]),
@@ -548,11 +561,13 @@ fn parse_stitches_with_choices() {
                         lines: vec![],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "cool",
+                                choice_text: "cool".to_string(),
+                                shown_text: "cool".to_string(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "uncool",
+                                choice_text: "uncool".to_string(),
+                                shown_text: "uncool".to_string(),
                                 divert: "train.missed_train".into(),
                                 ..Default::default()
                             },
@@ -575,12 +590,14 @@ fn parse_stitches_with_choices() {
                         lines: vec!["first class".into()],
                         end: KnotEnd::Choices(vec![
                             ink_parser::Choice {
-                                text: "be late",
+                                choice_text: "be late".to_string(),
+                                shown_text: "be late".to_string(),
                                 divert: "train.missed_train".into(),
                                 ..Default::default()
                             },
                             ink_parser::Choice {
-                                text: "be early",
+                                choice_text: "be early".to_string(),
+                                shown_text: "be early".to_string(),
                                 divert: "train.second_class".into(),
                                 ..Default::default()
                             }
@@ -629,14 +646,15 @@ fn parse_choices_with_hidden_text() {
                     lines: vec!["What do you want to say?".into()],
                     end: KnotEnd::Choices(vec![
                         ink_parser::Choice {
-                            text: "Hey",
+                            choice_text: "Hey".to_string(),
+                            shown_text: "Hey".to_string(),
                             lines: vec!["I'm Bruce.".into()],
                             ..Default::default()
                         },
                         ink_parser::Choice {
-                            text: "sup",
+                            choice_text: "sup".to_string(),
+                            shown_text: "".to_string(),
                             lines: vec!["What is up?".into()],
-                            show_text: false,
                             ..Default::default()
                         }
                     ]),
@@ -705,5 +723,42 @@ fn parse_title() {
     assert_eq!(
         parsed.get_title(),
         Some("The Title of the Story".to_string())
+    );
+}
+
+#[test]
+fn parse_choices_with_hidden_choice_text() {
+    let string = strip_comments(include_str!("../samples/choices_with_hidden_text.ink"));
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed,
+        InkStory {
+            global_variables_and_constants: BTreeMap::new(),
+            knots: BTreeMap::from([(
+                "__INTRO__".to_string(),
+                Knot {
+                    title: "__INTRO__".to_string(),
+                    lines: vec!["What do you want to say?".into()],
+                    end: KnotEnd::Choices(vec![
+                        ink_parser::Choice {
+                            choice_text: "\"Hey\"".to_string(),
+                            shown_text: "\"Sup, my dude?\"".to_string(),
+                            lines: vec!["He stared at me in disbelief.".into()],
+                            ..Default::default()
+                        },
+                        ink_parser::Choice {
+                            choice_text: "\"Why?\"".to_string(),
+                            shown_text: "\"Why not!\"".to_string(),
+                            lines: vec!["So we left, right there.".into()],
+                            ..Default::default()
+                        }
+                    ]),
+                    knot_tags: vec![]
+                }
+            ),]),
+            global_tags: vec![]
+        }
     );
 }

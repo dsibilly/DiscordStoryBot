@@ -126,8 +126,8 @@ impl<'a> From<&'a str> for KnotEnd<'a> {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Choice<'a> {
-    pub text: &'a str,
-    pub show_text: bool,
+    pub choice_text: String,
+    pub shown_text: String,
     pub lines: Vec<Line<'a>>,
     pub divert: Divert,
     pub sticky: bool,
@@ -136,8 +136,8 @@ pub struct Choice<'a> {
 impl<'a> Default for Choice<'a> {
     fn default() -> Self {
         Choice {
-            text: "",
-            show_text: true,
+            choice_text: "".to_string(),
+            shown_text: "".to_string(),
             lines: vec![],
             divert: Default::default(),
             sticky: false,
@@ -441,16 +441,23 @@ fn parse_knot<'a>(title: &str, tokens: &[InkToken<'a>], is_stitch: bool) -> (Vec
 }
 
 fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (Choice<'a>, usize) {
-    let mut title = title;
-    let mut shown_text = true;
-    if title.starts_with('[') && title.ends_with(']') {
-        title = &title[1..title.len() - 1];
-        shown_text = false;
+    let mut choice_text = title.to_string();
+    let mut shown_text = title.to_string();
+
+    if title.contains('[') && title.contains(']') {
+        let open_index = title.find('[').unwrap();
+        let closed_index = title.find(']').unwrap();
+
+        choice_text = title[0..open_index].to_string() + &title[(open_index + 1)..closed_index];
+        shown_text = title[0..open_index].to_string() + &title[(closed_index + 1)..];
+
+        choice_text = choice_text.trim().to_string();
+        shown_text = shown_text.trim().to_string();
     }
 
     let mut choice = Choice {
-        text: title,
-        show_text: shown_text,
+        choice_text,
+        shown_text,
         lines: vec![],
         divert: Default::default(),
         sticky,

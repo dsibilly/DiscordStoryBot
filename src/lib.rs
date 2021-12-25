@@ -157,7 +157,7 @@ mod tests {
     #[test]
     fn basic_story() {
         let mut game = Game::new(
-            include_str!("../stories/basic_story/basic_story.ink"),
+            include_str!("../stories/basic_story.ink"),
             None,
             &"".to_string().into(),
         );
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn hide_choices() {
         let game = Game::new(
-            include_str!("../stories/basic_story/basic_story.ink"),
+            include_str!("../stories/basic_story.ink"),
             None,
             &"".to_string().into(),
         );
@@ -191,5 +191,43 @@ mod tests {
     #[test]
     fn parse_images() {
         assert_eq!(get_img_tag_image("img:A.png"), Some("A.png".to_string()));
+    }
+
+    #[test]
+    fn hidden_choice_text() {
+        let mut game = Game::new(
+            include_str!("../stories/hidden_choice_text.ink"),
+            None,
+            &"".to_string().into(),
+        );
+        assert_eq!(
+            game.choices,
+            vec![
+                "😊".to_string(),
+                "😀 - time to smile".to_string(),
+                "😎 - be cool".to_string(),
+            ]
+        );
+        game.choose("😊");
+        assert_eq!(game.lines_as_text(), "You smile, a grin as big as the sun.");
+
+        let mut game = Game::new(
+            include_str!("../stories/hidden_choice_text.ink"),
+            None,
+            &"".to_string().into(),
+        );
+        game.choose("😀 - time to smile");
+        assert_eq!(
+            game.lines_as_text(),
+            "😀 - you fight the need to frown, eyes watering."
+        );
+
+        let mut game = Game::new(
+            include_str!("../stories/hidden_choice_text.ink"),
+            None,
+            &"".to_string().into(),
+        );
+        game.choose("😎 - be cool");
+        assert_eq!(game.lines_as_text(), "You are being very cool.");
     }
 }

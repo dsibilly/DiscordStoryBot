@@ -12,6 +12,39 @@ pub enum Output {
     Tag(String),
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Default)]
+pub struct OutputLine {
+    pub text: String,
+    pub tags: Vec<String>,
+}
+
+impl From<&str> for OutputLine {
+    fn from(s: &str) -> Self {
+        OutputLine {
+            text: s.to_string(),
+            tags: vec![],
+        }
+    }
+}
+
+impl From<String> for OutputLine {
+    fn from(s: String) -> Self {
+        OutputLine {
+            text: s,
+            tags: vec![],
+        }
+    }
+}
+
+impl<'a> From<DialogLine<'a>> for OutputLine {
+    fn from(s: DialogLine<'a>) -> Self {
+        OutputLine {
+            text: s.text.to_string(),
+            tags: s.tags.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+}
+
 pub struct StoryRunner<'a> {
     pub state: StoryState,
     pub story: InkStory<'a>,
@@ -106,9 +139,9 @@ impl<'a> StoryRunner<'a> {
                         (c.sticky
                             || !self.state.chosen_choices.contains(&(
                                 self.state.current_knot_title.to_string(),
-                                c.text.to_string(),
+                                c.choice_text.to_string(),
                             )))
-                        .then(|| c.text.to_string())
+                        .then(|| c.choice_text.to_string())
                     })
                     .collect::<Vec<_>>();
 
@@ -123,7 +156,7 @@ impl<'a> StoryRunner<'a> {
     }
 
     /// start the story from the beginning; returns the text that should be shown
-    pub fn start(&mut self) -> Vec<DialogLine<'_>> {
+    pub fn start(&mut self) -> Vec<OutputLine> {
         // TODO: get all the global variables at once?
 
         let title = self.state.current_knot_title.clone();
@@ -131,12 +164,12 @@ impl<'a> StoryRunner<'a> {
     }
 
     /// steps the story, and gives the text that should be displayed
-    pub fn step(&mut self, choice: &str) -> Vec<DialogLine<'_>> {
+    pub fn step(&mut self, choice: &str) -> Vec<OutputLine> {
         self.run_choice(choice)
     }
 
     // TODO: maybe this should return a tuple: lines and choices
-    fn run_knot(&mut self, knot_title: &str) -> Vec<DialogLine<'_>> {
+    fn run_knot(&mut self, knot_title: &str) -> Vec<OutputLine> {
         self.state.current_knot_title = knot_title.to_string();
         self.state.visited_knots.insert(knot_title.to_string());
 
@@ -159,10 +192,10 @@ impl<'a> StoryRunner<'a> {
                 .clone()
                 .into_iter()
                 .map(|x| match x {
-                    Line::Dialog(s) => s,
+                    Line::Dialog(s) => s.into(),
                     Line::Operation(_) => todo!(), // TODO
                 })
-                .collect::<Vec<DialogLine<'_>>>()
+                .collect::<Vec<OutputLine>>()
                 .clone(),
         );
 
@@ -183,7 +216,8 @@ impl<'a> StoryRunner<'a> {
         output
     }
 
-    fn run_choice(&mut self, choice_str: &str) -> Vec<DialogLine<'_>> {
+    // TODO: this gives DialogLine. Should it? Maybe a String version instead?
+    fn run_choice(&mut self, choice_str: &str) -> Vec<OutputLine> {
         self.state.chosen_choices.insert((
             self.state.current_knot_title.to_string(),
             choice_str.to_string(),
@@ -200,15 +234,19 @@ impl<'a> StoryRunner<'a> {
             KnotEnd::Divert(_) => unreachable!(),
         };
 
-        let choice = match options.iter().find(|o| o.text == choice_str) {
+        let choice = match options.iter().find(|o| o.choice_text == choice_str) {
             Some(c) => c,
-            None => todo!(), // TODO: return an error
+            None => {
+                dbg!(choice_str);
+                dbg!(options);
+                todo!()
+            } // TODO: return an error
         };
 
         let mut output = vec![];
 
-        if choice.show_text && choice.text != "" {
-            output.push(choice.text.into());
+        if choice.shown_text != "" {
+            output.push(choice.shown_text.clone().into());
         }
 
         output.append(
@@ -217,10 +255,10 @@ impl<'a> StoryRunner<'a> {
                 .clone()
                 .into_iter()
                 .map(|x| match x {
-                    Line::Dialog(s) => s,
+                    Line::Dialog(s) => s.into(),
                     _ => todo!(),
                 })
-                .collect::<Vec<DialogLine<'_>>>()
+                .collect::<Vec<OutputLine>>()
                 .clone(),
         );
 

@@ -210,3 +210,21 @@ fn test_lex_choices() {
         ]
     );
 }
+
+#[test]
+fn test_lex_choices_with_hidden_choice_text() {
+    assert_eq!(
+        lex(&strip_comments(include_str!(
+            "../samples/choices_with_hidden_text.ink"
+        ))),
+        vec![
+            Dialog("What do you want to say?"),
+            Choice("[\"Hey\"] \"Sup, my dude?\""),
+            Dialog("He stared at me in disbelief."),
+            Divert("END"),
+            Choice("\"Why[?\"] not!\""),
+            Dialog("So we left, right there."),
+            Divert("END"),
+        ]
+    );
+}
