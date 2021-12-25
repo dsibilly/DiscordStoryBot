@@ -14,16 +14,18 @@ v0.1
   - [x] and tick the timer appropriately depending on time scale.
   - [x] and have a way to set these when playing a story
 - [x] stories as their own directories, automatically imported
-- [ ] grab the story title from the tag (if there is one)
-  - maybe you choose the story with a number, so we can support titles with spaces in them
-- [ ] hide test stories, or make them their own category
+- [x] hide test stories, or make them their own category
 
 v0.2
 
+- [ ] grab the story title from the tag (if there is one)
+  - display this in the `!play` list, but still use the filename as they key
 - [ ] emoji validation
+- [ ] verify that filenames don't have spaces in them, or other bad special characters
+- [ ] error handling with messages (when applicable) to the user, otherwise nice logs
 - [ ] restart from the middle
 - [ ] pause/resume commands
-- [ ] variables
+- [ ] variables, logic, and conditionals
 - [ ] generate text from data, for example a health bar made of heart emojis. Maybe ink can do this without special code though, so we'll see.
 
 v0.3
