@@ -1,9 +1,9 @@
 [package]
 name = "discord_story_bot"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Matt Woelk <matt@mattwoelk.ca>"]
 edition = "2021"
-description = "TODO"
+description = "A discord bot that runs .ink stories."
 repository = "https://github.com/MattWoelk/DiscordStoryBot"
 license = "MIT"
 include = ["LICENSE", "Cargo.toml", "src/**/*.rs"]

@@ -3,7 +3,7 @@
 
 Goals:
 
-v0.1
+v0.2
 
 - [x] basic story features
 - [x] show options and associated text
@@ -16,7 +16,7 @@ v0.1
 - [x] stories as their own directories, automatically imported
 - [x] hide test stories, or make them their own category
 
-v0.2
+v1.0
 
 - [ ] grab the story title from the tag (if there is one)
   - display this in the `!play` list, but still use the filename as they key
@@ -28,7 +28,7 @@ v0.2
 - [ ] variables, logic, and conditionals
 - [ ] generate text from data, for example a health bar made of heart emojis. Maybe ink can do this without special code though, so we'll see.
 
-v0.3
+v2.0
 
 - [ ] a way to show which options you would have had, but are unavailable, so people want to play again.
   -  maybe this is a summary of the game, or saying "X branches were not taken", or "found 3/5 endings".
