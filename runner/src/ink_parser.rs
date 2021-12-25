@@ -126,6 +126,7 @@ impl<'a> From<&'a str> for KnotEnd<'a> {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Choice<'a> {
+    pub conditionals: Vec<Expression>,
     pub choice_text: String,
     pub shown_text: String,
     pub lines: Vec<Line<'a>>,
@@ -136,12 +137,25 @@ pub struct Choice<'a> {
 impl<'a> Default for Choice<'a> {
     fn default() -> Self {
         Choice {
+            conditionals: vec![],
             choice_text: "".to_string(),
             shown_text: "".to_string(),
             lines: vec![],
             divert: Default::default(),
             sticky: false,
         }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum Expression {
+    Not(Box<Expression>),
+    KnotVisited(String),
+}
+
+impl From<&str> for Expression {
+    fn from(knot_title: &str) -> Self {
+        Expression::KnotVisited(knot_title.to_string())
     }
 }
 
@@ -441,6 +455,17 @@ fn parse_knot<'a>(title: &str, tokens: &[InkToken<'a>], is_stitch: bool) -> (Vec
 }
 
 fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (Choice<'a>, usize) {
+    let mut title = title.trim();
+
+    let mut conditionals: Vec<Expression> = vec![];
+
+    if title.starts_with('{') && title.contains('}') {
+        let close_index = title.find('}').unwrap();
+        let conditional_text = &title[1..close_index];
+        conditionals.push(parse_conditional(conditional_text.trim()));
+        title = &title[close_index + 1..].trim();
+    }
+
     let mut choice_text = title.to_string();
     let mut shown_text = title.to_string();
 
@@ -456,6 +481,7 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
     }
 
     let mut choice = Choice {
+        conditionals,
         choice_text,
         shown_text,
         lines: vec![],
@@ -491,6 +517,14 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
     }
 
     (choice, index)
+}
+
+pub fn parse_conditional(text: &str) -> Expression {
+    if let Some(text) = text.to_lowercase().strip_prefix("not ") {
+        Expression::Not(Box::from(parse_conditional(text)))
+    } else {
+        Expression::KnotVisited(text.to_string())
+    }
 }
 
 pub fn get_author_from_tag(tag: &str) -> Option<String> {

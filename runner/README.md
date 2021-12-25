@@ -33,6 +33,7 @@ Differences from the official implementation:
 - [ ] logical operators AND `&&`, OR `||`, and NOT `not`
 - [ ] not as exclamation point: `!`
 - [ ] integer comparison checks `{seen_clue > 3}`
+- [ ] variable text `{one|two|three}`
 - [ ] conditional text `{variable: text if true|text if false}`
 - [ ] global variables `VAR`
 - [ ] numerical maths and logic `~ x = (x*x) - (y*y)`
