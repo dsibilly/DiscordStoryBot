@@ -10,7 +10,7 @@
 
 The sun hits your lips as you wake from a dream.
 
-You mind's turmoil intermingles with reality as you rub your eyes. Your everything is full of sand, and your hair is damp.
+You mind's clouds mix with reality as you rub your eyes. Your everything is full of sand, and your hair is damp.
 
 On your left is the ocean 🌊, in front of you is the shore 🏖, and to your right is the rocks 🗻.
 
@@ -141,7 +141,7 @@ It's too heavy to bring, but it must stay safe. You reach up and tuck it under a
 
 You climb to the top of the rocks 🗻 and see a cave entrance ⚫.
 
-+ ⚫ -> cave
++ ⚫ -> cave_intro
 
 * 👂 -> cave_listen
 
@@ -150,15 +150,21 @@ You climb to the top of the rocks 🗻 and see a cave entrance ⚫.
 
 You listen at the entrance of the cave. You hear hundreds of fluttering bats 🦇, then a slow drip of water 💧.
 
--> cave
+-> cave_intro
 
 
-== cave
+== cave_intro
 
 The cave is dimly lit from a hole in the ceiling.
 
 The floor is covered in bat dung 💩, there is a giant cube of glass in the distance 🧊, and you can hear bats down another corridor to the right 🦇.
 
+-> cave
+
+
+== cave
+
+You stand alone in the cave.
 
 * 💩 -> bat_poop
 
