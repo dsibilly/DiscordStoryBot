@@ -154,7 +154,7 @@ mod tests {
         let mut game = Game::new(
             include_str!("../stories/basic_story.ink"),
             None,
-            &"".to_string().into(),
+            &PathBuf::new(),
         );
         dbg!(&game.lines_as_text());
         dbg!(&game.choices_as_strings());
@@ -172,13 +172,13 @@ mod tests {
         let game = Game::new(
             include_str!("../stories/basic_story.ink"),
             None,
-            &"".to_string().into(),
+            &PathBuf::new(),
         );
         assert_eq!(game.config.hide_choices, false);
         let game = Game::new(
             include_str!("../stories/hide_choices/hide_choices.ink"),
             None,
-            &"".to_string().into(),
+            &PathBuf::new(),
         );
         assert_eq!(game.config.hide_choices, true);
     }
@@ -193,7 +193,7 @@ mod tests {
         let mut game = Game::new(
             include_str!("../stories/hidden_choice_text.ink"),
             None,
-            &"".to_string().into(),
+            &PathBuf::new(),
         );
         assert_eq!(
             game.choices,
@@ -209,7 +209,7 @@ mod tests {
         let mut game = Game::new(
             include_str!("../stories/hidden_choice_text.ink"),
             None,
-            &"".to_string().into(),
+            &PathBuf::new(),
         );
         game.choose("😀 - time to smile");
         assert_eq!(
@@ -220,7 +220,7 @@ mod tests {
         let mut game = Game::new(
             include_str!("../stories/hidden_choice_text.ink"),
             None,
-            &"".to_string().into(),
+            &PathBuf::new(),
         );
         game.choose("😎 - be cool");
         assert_eq!(game.lines_as_text(), "You are being very cool.");
