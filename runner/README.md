@@ -29,13 +29,15 @@ Differences from the official implementation:
 ## v0.2
 - [x] `[?]`
   - `both [only pre-choice] only post-choice` 
-- [ ] conditional choices `{}`
+- [x] conditional choices `{}`
+  - [ ] "test knot_name is true if any stitch inside that knot has been seen."
+- [ ] global constants `CONST`
+- [ ] global variables `VAR`
 - [ ] logical operators AND `&&`, OR `||`, and NOT `not`
 - [ ] not as exclamation point: `!`
 - [ ] integer comparison checks `{seen_clue > 3}`
 - [ ] variable text `{one|two|three}`
 - [ ] conditional text `{variable: text if true|text if false}`
-- [ ] global variables `VAR`
 - [ ] numerical maths and logic `~ x = (x*x) - (y*y)`
 
 ## v0.3
@@ -69,7 +71,6 @@ Differences from the official implementation:
 ## v0.4
 
 - [ ] functions
-- [ ] global constants
 - [ ] tunnels
 - [ ] threads
 - [ ] lists (TODO: split this into sub-sections)

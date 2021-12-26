@@ -2,7 +2,7 @@
 
 use ink_runner::ink_parser::InkStory;
 use ink_runner::ink_runner::StoryRunner;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Usage: Initialize with new() then use the fields, which well be updated whenever choose() is called.
 /// while choices aren't Prompt::Done, there is still more story left.
@@ -24,13 +24,13 @@ struct GameConfig {
 }
 
 impl<'a> Game<'a> {
-    pub fn new(content: &str, knot: Option<String>, path: &PathBuf) -> Self {
+    pub fn new(content: &str, knot: Option<String>, path: &Path) -> Self {
         let mut me = Game {
             runner: StoryRunner::build_from_str(content),
             lines_with_tags: vec![],
             choices: vec![],
             config: Default::default(),
-            story_path: path.clone(),
+            story_path: path.to_path_buf(),
             active: false,
             stopped: false,
             paused: false,
@@ -100,9 +100,9 @@ impl<'a> Game<'a> {
         self.runner.set_knot(knot);
     }
 
-    pub fn set_story(&mut self, story: InkStory<'a>, path: &PathBuf) {
+    pub fn set_story(&mut self, story: InkStory<'a>, path: &Path) {
         self.runner.replace_story(story);
-        self.story_path = path.clone();
+        self.story_path = path.to_path_buf();
         self.reset(None);
     }
 
@@ -116,12 +116,7 @@ impl<'a> Game<'a> {
             .runner
             .start()
             .into_iter()
-            .map(|l| {
-                (
-                    l.text.to_string(),
-                    l.tags.into_iter().map(|x| x.to_string()).collect(),
-                )
-            })
+            .map(|l| (l.text.to_string(), l.tags.into_iter().collect()))
             .collect();
 
         self.choices = self.runner.get_options();

@@ -14,7 +14,7 @@ You mind's turmoil intermingles with reality as you rub your eyes. Your everythi
 
 On your left is the ocean 🌊, in front of you is the shore 🏖, and to your right is the rocks 🗻.
 
-* 🌊 -> ocean
+* {not ocean} 🌊 -> ocean
 
 + 🏖 -> shore
 
@@ -47,7 +47,7 @@ The gulls cackle as the waves shush them. You find an orb 🔮.
 
 The ocean 🌊 is on your left, the rocks 🗻 are on your right, and the orb 🔮 is at your feet.
 
-* 🌊 -> ocean
+* {not ocean} 🌊 -> ocean
 
 * 🔮 -> orb_approach
 
@@ -62,7 +62,7 @@ The orb falls to the sand, seeming somehow different.
 
 The ocean 🌊 is on your left, the rocks 🗻 are on your right, and the orb 🔮 is at your feet.
 
-* 🌊 -> ocean
+* {not ocean} 🌊 -> ocean
 
 * 🔮 -> orb_again
 

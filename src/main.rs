@@ -369,7 +369,7 @@ async fn main() {
     let game = Game::new(&story_text, opt.knot, &stories[0].0).set_do_not_pin(opt.do_not_pin);
 
     let stories = stories.iter().map(|(dir, file)| {
-        let full_path = dir.to_string_lossy().to_string() + "/" + &file + ".ink";
+        let full_path = dir.to_string_lossy().to_string() + "/" + file + ".ink";
 
         (
             file.to_string(),
@@ -399,13 +399,13 @@ async fn main() {
 
 fn format_remaining_time(time_remaining: u32) -> String {
     match time_remaining {
-        1 => format!("1 second remaining"),
+        1 => "1 second remaining".to_string(),
         t @ 0 | t @ 2..=59 => format!("{} seconds remaining", t),
-        60..=119 => format!("1 minute remaining"),
+        60..=119 => "1 minute remaining".to_string(),
         t @ 120..=3599 => format!("{} minutes remaining", t / 60),
-        3600..=7199 => format!("1 hour remaining"),
+        3600..=7199 => "1 hour remaining".to_string(),
         t @ 7200..=86_399 => format!("{} hours remaining", t / (60 * 60)),
-        86_400..=172_799 => format!("1 day remaining"),
+        86_400..=172_799 => "1 day remaining".to_string(),
         t => format!("{} days remaining", t / (60 * 60 * 24)),
     }
 }
