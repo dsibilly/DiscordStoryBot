@@ -214,11 +214,25 @@ impl<'a> StoryRunner<'a> {
 
     // TODO: maybe this should return a tuple: lines and choices
     fn run_knot(&mut self, knot_title: &str) -> Vec<OutputLine> {
+        let previous_knot_title = self.state.current_knot_title.clone();
         self.state.current_knot_title = knot_title.to_string();
-        if let Some(count) = self.state.visited_knots.get_mut(knot_title) {
-            *count += 1;
-        } else {
-            self.state.visited_knots.insert(knot_title.to_string(), 1);
+
+        // Increment the count of this knot being visited
+        self.increment_visited(&knot_title);
+
+        // If we entered a new knot's stitch, increment its visited count too
+        // TODO: Test this !
+        if let Some((knot, _)) = knot_title.split_once('.') {
+            let previous_knot_title =
+                if let Some((previous_knot, _)) = previous_knot_title.split_once('.') {
+                    previous_knot.to_string()
+                } else {
+                    previous_knot_title
+                };
+
+            if knot != previous_knot_title {
+                self.increment_visited(&previous_knot_title);
+            }
         }
 
         if knot_title == "END" {
@@ -311,6 +325,14 @@ impl<'a> StoryRunner<'a> {
         output.append(&mut self.run_knot(&choice.divert.knot_title));
 
         output
+    }
+
+    pub fn increment_visited(&mut self, knot_title: &str) {
+        if let Some(count) = self.state.visited_knots.get_mut(knot_title) {
+            *count += 1;
+        } else {
+            self.state.visited_knots.insert(knot_title.to_string(), 1);
+        }
     }
 
     pub fn set_knot(&mut self, knot: &str) {

@@ -30,7 +30,7 @@ Differences from the official implementation:
 - [x] `[?]`
   - `both [only pre-choice] only post-choice` 
 - [x] conditional choices `{}`
-  - [ ] "test knot_name is true if any stitch inside that knot has been seen."
+  - [x] "test knot_name is true if any stitch inside that knot has been seen." (whenever you go to a stitch inside a knot, when you were not already in that knot)
 - [ ] global constants `CONST`
 - [ ] global variables `VAR`
 - [ ] logical operators AND `&&`, OR `||`, and NOT `not`
