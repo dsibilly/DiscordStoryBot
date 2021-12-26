@@ -219,6 +219,7 @@ impl<'a> EventHandler for Handler<'a> {
                     self.game.lock().unwrap().stopped = false;
                     self.game.lock().unwrap().active = false;
                     let channel = msg.channel_id;
+                    dbg!(most_recent_message.unpin(&ctx).await);
                     channel
                         .say(&ctx.http, "The story has been stopped.".to_string())
                         .await
@@ -282,7 +283,7 @@ impl<'a> Handler<'a> {
             .expect(&format!("Could not send message {}", &text));
 
         if !self.game.lock().unwrap().do_not_pin() {
-            //dbg!(previous_message.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
+            dbg!(previous_message.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
             dbg!(message.pin(ctx).await); // TODO: docs, saying that Manage Messages is required
         }
 
