@@ -1,5 +1,6 @@
 #![cfg(test)]
 
+use crate::ink_parser::{Expression, VariableValue};
 use crate::ink_runner::{OutputLine, StoryRunner, StoryState};
 use pretty_assertions::assert_eq;
 
@@ -19,7 +20,7 @@ fn serialize_to_ron() {
 
     assert_eq!(data_from_ron, data);
     assert_eq!(
-        "(current_knot_title:\"__INTRO__\",variables:{},visited_knots:[],chosen_choices:[])",
+        "(current_knot_title:\"__INTRO__\",variables:{},visited_knots:{},chosen_choices:[])",
         ron
     );
 }
@@ -380,4 +381,74 @@ fn run_stitches_with_choices() {
 
     let empty: Vec<String> = vec![];
     assert_eq!(runner.get_options(), empty);
+}
+
+#[test]
+fn test_evaluate_expression() {
+    let mut runner = StoryRunner::build_from_str(
+        "VAR nine = 9\n->space\n== space\n* done? -> END\n* {zoo} saw zoo -> END\n* {not zoo} did not see zoo -> END\n* {space} saw space -> END\n* {not space} did not see space -> END\n== zoo\n-> END",
+    );
+    runner.start();
+
+    assert_eq!(runner.is_truthy(&VariableValue::Int(0)), false);
+    assert_eq!(runner.is_truthy(&VariableValue::Int(1)), true);
+    assert_eq!(runner.is_truthy(&VariableValue::Int(-1)), true);
+
+    assert_eq!(runner.is_truthy(&VariableValue::Float(0.0)), false);
+    assert_eq!(runner.is_truthy(&VariableValue::Float(0.1)), true);
+    assert_eq!(runner.is_truthy(&VariableValue::Float(1.0)), true);
+    assert_eq!(runner.is_truthy(&VariableValue::Float(-1.0)), true);
+
+    assert_eq!(
+        runner.is_truthy(&VariableValue::Content("".to_string())),
+        false
+    );
+    assert_eq!(
+        runner.is_truthy(&VariableValue::Content("0".to_string())),
+        true
+    );
+    assert_eq!(
+        runner.is_truthy(&VariableValue::Content("1".to_string())),
+        true
+    );
+
+    assert_eq!(
+        runner.is_truthy(&VariableValue::Address("not a knot name".to_string())),
+        false
+    );
+    assert_eq!(
+        runner.is_truthy(&VariableValue::Address("zoo".to_string())),
+        false
+    );
+    assert_eq!(
+        runner.is_truthy(&VariableValue::Address("space".to_string())),
+        true
+    );
+
+    assert_eq!(
+        runner.evaluate_expression(&Expression::KnotVisited("space".to_string())),
+        VariableValue::Address("space".to_string())
+    );
+    assert_eq!(
+        runner.evaluate_expression(&Expression::Not(Box::new(Expression::KnotVisited(
+            "zoo".to_string()
+        )))),
+        VariableValue::Int(1)
+    );
+    assert_eq!(
+        runner.evaluate_expression(&Expression::Not(Box::new(Expression::KnotVisited(
+            "space".to_string()
+        )))),
+        VariableValue::Int(0)
+    );
+
+    let choices = runner.get_options();
+    assert_eq!(
+        choices,
+        vec![
+            "done?".to_string(),
+            "did not see zoo".to_string(),
+            "saw space".to_string()
+        ]
+    );
 }

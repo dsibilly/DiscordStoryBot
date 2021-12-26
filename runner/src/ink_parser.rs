@@ -463,7 +463,7 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
         let close_index = title.find('}').unwrap();
         let conditional_text = &title[1..close_index];
         conditionals.push(parse_conditional(conditional_text.trim()));
-        title = &title[close_index + 1..].trim();
+        title = title[close_index + 1..].trim();
     }
 
     let mut choice_text = title.to_string();

@@ -1,7 +1,9 @@
 #![allow(clippy::expect_fun_call)]
 
 use crate::ink_lexer::{lex, strip_comments};
-use crate::ink_parser::{lexed_to_parsed, DialogLine, InkStory, KnotEnd, Line, VariableValue};
+use crate::ink_parser::{
+    lexed_to_parsed, DialogLine, Expression, InkStory, KnotEnd, Line, VariableValue,
+};
 use ron::ser::{to_string_pretty, PrettyConfig};
 use ron::{from_str, to_string};
 use serde::{Deserialize, Serialize};
@@ -56,7 +58,7 @@ pub struct StoryRunner<'a> {
 pub struct StoryState {
     current_knot_title: String,
     variables: BTreeMap<String, VariableValue>, // TODO: set these
-    visited_knots: HashSet<String>,
+    visited_knots: BTreeMap<String, i32>,
     chosen_choices: HashSet<(String, String)>, // TODO: (Knot title, choices), but this should be a struct or something? BTreeMap?
 }
 
@@ -118,7 +120,7 @@ impl<'a> StoryRunner<'a> {
     /// gives the options for the current choices that the player can choose
     pub fn get_options(&self) -> Vec<String> {
         if self.state.current_knot_title == "END" {
-            return vec![]; // TODO: error or something instead, so we know it's the end?
+            return vec![];
         }
 
         let current_knot = self
@@ -136,12 +138,26 @@ impl<'a> StoryRunner<'a> {
                 let choices = choices
                     .iter()
                     .filter_map(|c| {
-                        (c.sticky
+                        // TODO: make sure the conditionals all non-zero
+
+                        if !c
+                            .conditionals
+                            .iter()
+                            .all(|c| self.is_truthy(&self.evaluate_expression(c)))
+                        {
+                            return None;
+                        }
+
+                        if c.sticky
                             || !self.state.chosen_choices.contains(&(
                                 self.state.current_knot_title.to_string(),
                                 c.choice_text.to_string(),
-                            )))
-                        .then(|| c.choice_text.to_string())
+                            ))
+                        {
+                            Some(c.choice_text.to_string())
+                        } else {
+                            None
+                        }
                     })
                     .collect::<Vec<_>>();
 
@@ -152,6 +168,34 @@ impl<'a> StoryRunner<'a> {
                     choices.into_iter().filter(|s| s != "").collect()
                 }
             }
+        }
+    }
+
+    pub fn evaluate_expression(&self, exp: &Expression) -> VariableValue {
+        match exp {
+            Expression::KnotVisited(s) => VariableValue::Address(s.clone()),
+            Expression::Not(e) => {
+                if self.is_truthy(&self.evaluate_expression(e)) {
+                    VariableValue::Int(0)
+                } else {
+                    VariableValue::Int(1)
+                }
+            }
+        }
+    }
+
+    pub fn is_truthy(&self, val: &VariableValue) -> bool {
+        match val {
+            VariableValue::Int(i) => *i != 0,
+            VariableValue::Float(f) => *f != 0.0,
+            VariableValue::Address(s) => {
+                if let Some(x) = self.state.visited_knots.get(s) {
+                    *x != 0
+                } else {
+                    false
+                }
+            }
+            VariableValue::Content(s) => !s.is_empty(),
         }
     }
 
@@ -171,7 +215,11 @@ impl<'a> StoryRunner<'a> {
     // TODO: maybe this should return a tuple: lines and choices
     fn run_knot(&mut self, knot_title: &str) -> Vec<OutputLine> {
         self.state.current_knot_title = knot_title.to_string();
-        self.state.visited_knots.insert(knot_title.to_string());
+        if let Some(count) = self.state.visited_knots.get_mut(knot_title) {
+            *count += 1;
+        } else {
+            self.state.visited_knots.insert(knot_title.to_string(), 1);
+        }
 
         if knot_title == "END" {
             return vec![];
@@ -195,20 +243,19 @@ impl<'a> StoryRunner<'a> {
                     Line::Dialog(s) => s.into(),
                     Line::Operation(_) => todo!(), // TODO
                 })
-                .collect::<Vec<OutputLine>>()
-                .clone(),
+                .collect::<Vec<OutputLine>>(),
         );
 
         match &knot.end {
             KnotEnd::Divert(d) => {
-                output.append(&mut self.run_knot(&d.knot_title).clone());
+                output.append(&mut self.run_knot(&d.knot_title));
             }
             KnotEnd::Choices(_) => {
                 // If there is only one choice, and it's the fallback "" then run it.
                 // Otherwise, stop running here.
                 let choices = self.get_options();
                 if choices.len() == 1 && choices[0] == "" {
-                    output.append(&mut self.run_choice("").clone());
+                    output.append(&mut self.run_choice(""));
                 }
             }
         }
@@ -258,8 +305,7 @@ impl<'a> StoryRunner<'a> {
                     Line::Dialog(s) => s.into(),
                     _ => todo!(),
                 })
-                .collect::<Vec<OutputLine>>()
-                .clone(),
+                .collect::<Vec<OutputLine>>(),
         );
 
         output.append(&mut self.run_knot(&choice.divert.knot_title));
