@@ -20,5 +20,4 @@ C
 
 == dee
 D # img:D.png
-* 🎄
 -> END

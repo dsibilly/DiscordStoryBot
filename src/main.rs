@@ -229,13 +229,15 @@ impl<'a> EventHandler for Handler<'a> {
                 }
             }
 
+            // TODO: will this _not_ send pictures?
             let text = self.game.lock().unwrap().lines_as_text();
             let channel = msg.channel_id;
-            channel
+            let final_message = channel
                 .say(&ctx.http, text + &"\nEND.".to_string())
                 .await
                 .expect("Could not send next initial text");
 
+            //dbg!(final_message.unpin(&ctx).await); // TODO: is the final message ever pinned?
             self.game.lock().unwrap().active = false;
 
             dbg!("STORY IS OVER NOW");
@@ -343,6 +345,7 @@ impl<'a> Handler<'a> {
         };
 
         (
+            // TODO: should we do this filter outside, so we don't have to pass `choices` into this function?
             choices
                 .iter()
                 .find(|s| s.starts_with(&winning_emoji))
