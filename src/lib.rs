@@ -63,7 +63,7 @@ impl<'a> Game<'a> {
             .iter()
             .map(|(line, _)| line.to_string())
             .collect::<Vec<String>>()
-            .join("\n\n")
+            .join("\n\n") // TODO: join with empty string, and double the newlines another way.
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {

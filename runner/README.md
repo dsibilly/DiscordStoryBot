@@ -32,6 +32,7 @@ Differences from the official implementation:
 - [x] conditional choices `{}`
   - [x] "test knot_name is true if any stitch inside that knot has been seen." (whenever you go to a stitch inside a knot, when you were not already in that knot)
 - [ ] global constants `CONST`
+  - notes: DialogLine needs to always have `\n`s , so we can interleave other things, yeah?
 - [ ] global variables `VAR`
 - [ ] logical operators AND `&&`, OR `||`, and NOT `not`
 - [ ] not as exclamation point: `!`

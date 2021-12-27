@@ -20,6 +20,17 @@ pub enum VariableValue {
     Address(String),
 }
 
+impl VariableValue {
+    pub fn to_string(&self) -> String {
+        match self {
+            VariableValue::Int(i) => format!("{}", i),
+            VariableValue::Float(f) => format!("{}", f),
+            VariableValue::Address(a) => a.clone(),
+            VariableValue::Content(c) => c.clone(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct InkStory<'a> {
     pub global_variables_and_constants: BTreeMap<&'a str, VariableValue>,
@@ -70,6 +81,7 @@ impl<'a> InkStory<'a> {
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct DialogLine<'a> {
     pub text: &'a str,
+    pub has_newline: bool,
     pub tags: Vec<&'a str>,
 }
 
@@ -77,6 +89,7 @@ impl<'a> From<&'a str> for DialogLine<'a> {
     fn from(s: &'a str) -> Self {
         DialogLine {
             text: s,
+            has_newline: true,
             tags: vec![],
         }
     }
@@ -129,6 +142,7 @@ pub struct Choice<'a> {
     pub conditionals: Vec<Expression>,
     pub choice_text: String,
     pub shown_text: String,
+    pub has_newline: bool,
     pub lines: Vec<Line<'a>>,
     pub divert: Divert,
     pub sticky: bool,
@@ -140,6 +154,7 @@ impl<'a> Default for Choice<'a> {
             conditionals: vec![],
             choice_text: "".to_string(),
             shown_text: "".to_string(),
+            has_newline: true,
             lines: vec![],
             divert: Default::default(),
             sticky: false,
@@ -150,7 +165,7 @@ impl<'a> Default for Choice<'a> {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Expression {
     Not(Box<Expression>),
-    KnotVisited(String),
+    KnotVisited(String), // TODO: this may need to be more generic, as we won't know if it's a knot, or a variable, or const, or ...
 }
 
 impl From<&str> for Expression {
@@ -181,6 +196,7 @@ impl From<&str> for Divert {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Line<'a> {
     Dialog(DialogLine<'a>),
+    Expression(Expression),
     Operation(Operation),
 }
 
@@ -222,10 +238,11 @@ pub fn lexed_to_parsed<'a>(tokens: &[InkToken<'a>]) -> InkStory<'a> {
                     .insert(segment0.trim(), parse_variable_value(segment1));
                 index += 1;
             }
-            InkToken::Dialog(s) => {
+            InkToken::Dialog((s, has_newline)) => {
                 if starting_lines.is_empty() {
                     starting_lines.push(Line::Dialog(DialogLine {
                         text: s,
+                        has_newline,
                         tags: starting_tags.clone(),
                     }));
                 } else {
@@ -250,13 +267,13 @@ pub fn lexed_to_parsed<'a>(tokens: &[InkToken<'a>]) -> InkStory<'a> {
                 starting_divert = Some(KnotEnd::Divert(s.into()));
                 index += 1;
             }
-            InkToken::Choice(s) => {
-                let (choice, index_out) = parse_choice(s, &tokens[index..], false);
+            InkToken::Choice((s, has_newline)) => {
+                let (choice, index_out) = parse_choice(s, &tokens[index..], false, has_newline);
                 starting_choices.push(choice);
                 index += index_out;
             }
-            InkToken::StickyChoice(s) => {
-                let (choice, index_out) = parse_choice(s, &tokens[index..], true);
+            InkToken::StickyChoice((s, has_newline)) => {
+                let (choice, index_out) = parse_choice(s, &tokens[index..], true, has_newline);
                 starting_choices.push(choice);
                 index += index_out;
             }
@@ -275,6 +292,7 @@ pub fn lexed_to_parsed<'a>(tokens: &[InkToken<'a>]) -> InkStory<'a> {
                         starting_lines.pop();
                         starting_lines.push(Line::Dialog(DialogLine {
                             text: last_line.text,
+                            has_newline: last_line.has_newline,
                             tags: last_line.tags.clone(),
                         }))
                     } else {
@@ -339,13 +357,14 @@ fn parse_knot<'a>(title: &str, tokens: &[InkToken<'a>], is_stitch: bool) -> (Vec
 
     while index < tokens.len() {
         match tokens[index] {
-            InkToken::Dialog(s) => {
+            InkToken::Dialog((s, has_newline)) => {
                 if first_dialog {
                     knot.knot_tags = tag_buildup.clone();
                     first_dialog = false;
                 }
                 knot.lines.push(Line::Dialog(DialogLine {
                     text: s,
+                    has_newline,
                     tags: tag_buildup,
                 }));
                 // !!! TODO: there's no way to know if a following tag was on the same line as a dialog line. Do we need to make sure tags always go first? Or is there another way to do this?
@@ -377,13 +396,13 @@ fn parse_knot<'a>(title: &str, tokens: &[InkToken<'a>], is_stitch: bool) -> (Vec
                     break;
                 }
             }
-            InkToken::Choice(s) => {
-                let (choice, index_out) = parse_choice(s, &tokens[index..], false);
+            InkToken::Choice((s, has_newline)) => {
+                let (choice, index_out) = parse_choice(s, &tokens[index..], false, has_newline);
                 choices.push(choice);
                 index += index_out;
             }
-            InkToken::StickyChoice(s) => {
-                let (choice, index_out) = parse_choice(s, &tokens[index..], true);
+            InkToken::StickyChoice((s, has_newline)) => {
+                let (choice, index_out) = parse_choice(s, &tokens[index..], true, has_newline);
                 choices.push(choice);
                 index += index_out;
             }
@@ -454,7 +473,7 @@ fn parse_knot<'a>(title: &str, tokens: &[InkToken<'a>], is_stitch: bool) -> (Vec
     (x, index)
 }
 
-fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (Choice<'a>, usize) {
+fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool, has_newline: bool) -> (Choice<'a>, usize) {
     let mut title = title.trim();
 
     let mut conditionals: Vec<Expression> = vec![];
@@ -484,6 +503,7 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
         conditionals,
         choice_text,
         shown_text,
+        has_newline,
         lines: vec![],
         divert: Default::default(),
         sticky,
@@ -493,8 +513,12 @@ fn parse_choice<'a>(title: &'a str, tokens: &[InkToken<'a>], sticky: bool) -> (C
 
     while index < tokens.len() {
         match tokens[index] {
-            InkToken::Dialog(s) => {
-                choice.lines.push(Line::Dialog(s.into())); // TODO: tags on this line too
+            InkToken::Dialog((s, has_newline)) => {
+                choice.lines.push(Line::Dialog(DialogLine {
+                    text: s,
+                    has_newline,
+                    tags: vec![]
+                })); // TODO: tags on this line too
                 index += 1;
             }
             InkToken::Tag(_) => {

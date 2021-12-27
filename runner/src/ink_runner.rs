@@ -254,7 +254,8 @@ impl<'a> StoryRunner<'a> {
                 .clone()
                 .into_iter()
                 .map(|x| match x {
-                    Line::Dialog(s) => s.into(),
+                    Line::Dialog(s) => OutputLine::from(s),
+                    Line::Expression(e) => self.evaluate_expression(&e).to_string().into(),
                     Line::Operation(_) => todo!(), // TODO
                 })
                 .collect::<Vec<OutputLine>>(),
@@ -277,7 +278,6 @@ impl<'a> StoryRunner<'a> {
         output
     }
 
-    // TODO: this gives DialogLine. Should it? Maybe a String version instead?
     fn run_choice(&mut self, choice_str: &str) -> Vec<OutputLine> {
         self.state.chosen_choices.insert((
             self.state.current_knot_title.to_string(),
