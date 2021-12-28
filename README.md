@@ -36,11 +36,24 @@ v2.0
 See [the runner readme](runner/README.md) to see which parts of the .ink format are supported.
 
 
+## How to make a story
+
+You'll be writing a `.ink` file using the ink language. See [their documentation](https://www.inklestudios.com/ink/) for details. Go there and download their `Inky` tool, which you'll use for testing your story.
+
+Not every feature of ink is supported by the bot. See the current [support status here](runner/README.md).
+
+Your choices need to start with a [discord-supported emoji](https://emojipedia.org/twitter/twemoji-12.1.4/) ([more information](https://emojipedia.org/discord/)). See the [stories directory](stories) for example.
+
+You can add images using the `#img:image.jpg` tag. See [the images example](stories/images/images.ink).
+
+Put your images and .ink files in a directory together, like in the examples in the [stories directory](stories), and the bot will automatically find them when you deploy it (see below).
+
+
 ## Deployment
 
 ### To run locally:
 
-Run `cargo run -- -help`, which will tell you do to something like `cargo run -- client_ids/client_id.txt stories/story1.ink`.
+Run `cargo run -- -help`, which will tell you do to something like `cargo run -- client_ids/client_id.txt`.
 
 ### For cross-compiling from WSL/ubuntu to raspberry pi:
 
