@@ -17,6 +17,7 @@ pub enum Output {
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct OutputLine {
     pub text: String,
+    pub has_newline: bool,
     pub tags: Vec<String>,
 }
 
@@ -24,15 +25,7 @@ impl From<&str> for OutputLine {
     fn from(s: &str) -> Self {
         OutputLine {
             text: s.to_string(),
-            tags: vec![],
-        }
-    }
-}
-
-impl From<String> for OutputLine {
-    fn from(s: String) -> Self {
-        OutputLine {
-            text: s,
+            has_newline: true,
             tags: vec![],
         }
     }
@@ -42,6 +35,7 @@ impl<'a> From<DialogLine<'a>> for OutputLine {
     fn from(s: DialogLine<'a>) -> Self {
         OutputLine {
             text: s.text.to_string(),
+            has_newline: s.has_newline,
             tags: s.tags.iter().map(|s| s.to_string()).collect(),
         }
     }
@@ -173,7 +167,13 @@ impl<'a> StoryRunner<'a> {
 
     pub fn evaluate_expression(&self, exp: &Expression) -> VariableValue {
         match exp {
-            Expression::KnotVisited(s) => VariableValue::Address(s.clone()),
+            Expression::Identifier(s) => {
+                if self.story.knots.keys().any(|k| k == s) {
+                    VariableValue::Address(s.clone())
+                } else {
+                    self.state.variables.get(s).unwrap().clone()
+                }
+            }
             Expression::Not(e) => {
                 if self.is_truthy(&self.evaluate_expression(e)) {
                     VariableValue::Int(0)
@@ -202,6 +202,12 @@ impl<'a> StoryRunner<'a> {
     /// start the story from the beginning; returns the text that should be shown
     pub fn start(&mut self) -> Vec<OutputLine> {
         // TODO: get all the global variables at once?
+        self.state.variables = self
+            .story
+            .global_variables_and_constants
+            .iter()
+            .map(|(s, v)| (s.to_string(), v.clone()))
+            .collect();
 
         let title = self.state.current_knot_title.clone();
         self.run_knot(&title)
@@ -218,7 +224,7 @@ impl<'a> StoryRunner<'a> {
         self.state.current_knot_title = knot_title.to_string();
 
         // Increment the count of this knot being visited
-        self.increment_visited(&knot_title);
+        self.increment_visited(knot_title);
 
         // If we entered a new knot's stitch, increment its visited count too
         // TODO: Test this !
@@ -254,7 +260,12 @@ impl<'a> StoryRunner<'a> {
                 .clone()
                 .into_iter()
                 .map(|x| match x {
-                    Line::Dialog(s) => s.into(),
+                    Line::Dialog(s) => OutputLine::from(s),
+                    Line::Expression(e) => OutputLine {
+                        text: self.evaluate_expression(&e).to_string(),
+                        has_newline: false,
+                        tags: vec![],
+                    },
                     Line::Operation(_) => todo!(), // TODO
                 })
                 .collect::<Vec<OutputLine>>(),
@@ -277,7 +288,6 @@ impl<'a> StoryRunner<'a> {
         output
     }
 
-    // TODO: this gives DialogLine. Should it? Maybe a String version instead?
     fn run_choice(&mut self, choice_str: &str) -> Vec<OutputLine> {
         self.state.chosen_choices.insert((
             self.state.current_knot_title.to_string(),
@@ -307,7 +317,11 @@ impl<'a> StoryRunner<'a> {
         let mut output = vec![];
 
         if choice.shown_text != "" {
-            output.push(choice.shown_text.clone().into());
+            output.push(OutputLine {
+                text: choice.shown_text.to_string(),
+                has_newline: choice.has_newline,
+                tags: vec![],
+            });
         }
 
         output.append(

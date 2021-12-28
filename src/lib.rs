@@ -49,8 +49,9 @@ impl<'a> Game<'a> {
         self.lines_with_tags = lines
             .into_iter()
             .map(|l| {
+                let newline = if l.has_newline { "\n\n" } else { "" };
                 (
-                    l.text.to_string(),
+                    l.text.to_string() + newline,
                     l.tags.iter().map(|s| s.to_string()).collect(),
                 )
             })
@@ -63,7 +64,9 @@ impl<'a> Game<'a> {
             .iter()
             .map(|(line, _)| line.to_string())
             .collect::<Vec<String>>()
-            .join("\n\n")
+            .join("")
+            .trim()
+            .to_string()
     }
 
     pub fn choices_as_strings(&self) -> Vec<String> {
@@ -116,7 +119,10 @@ impl<'a> Game<'a> {
             .runner
             .start()
             .into_iter()
-            .map(|l| (l.text.to_string(), l.tags.into_iter().collect()))
+            .map(|l| {
+                let newline = if l.has_newline { "\n\n" } else { "" };
+                (l.text.to_string() + newline, l.tags.into_iter().collect())
+            })
             .collect();
 
         self.choices = self.runner.get_options();
@@ -224,5 +230,22 @@ mod tests {
         );
         game.choose("😎 - be cool");
         assert_eq!(game.lines_as_text(), "You are being very cool.");
+    }
+
+    #[test]
+    fn test_const() {
+        let game = Game::new(
+            r"CONST GRAVITY = 9.81
+Gravity is an acceleration of {GRAVITY} m/s^2.
+This is a second line.
+-> END
+",
+            None,
+            &PathBuf::new(),
+        );
+        assert_eq!(
+            game.lines_as_text(),
+            "Gravity is an acceleration of 9.81 m/s^2.\n\nThis is a second line."
+        );
     }
 }

@@ -2,6 +2,9 @@
 
 use crate::ink_lexer;
 use crate::ink_lexer::{lex, strip_comments, InkToken};
+use crate::ink_parser::KnotEnd::Choices;
+use crate::ink_parser::Line::Dialog;
+use crate::ink_parser::VariableValue::Float;
 use crate::ink_parser::{
     get_author_from_tag, get_title_from_tag, lexed_to_parsed, Choice, DialogLine, Expression,
     InkStory, Knot, KnotEnd, Line, VariableValue,
@@ -50,7 +53,7 @@ fn full_test() {
         }
     );
     assert_eq!(
-        lexed_to_parsed(&vec![InkToken::Dialog("hi"),]),
+        lexed_to_parsed(&vec![InkToken::Dialog(("hi", true)),]),
         InkStory {
             global_variables_and_constants: Default::default(),
             knots: BTreeMap::from([(
@@ -68,12 +71,12 @@ fn full_test() {
         lexed_to_parsed(&vec![
             InkToken::VariableDeclaration("health = 100"),
             InkToken::VariableDeclaration("pettiness = 100"),
-            InkToken::Dialog("LONDON, 1872"),
-            InkToken::Dialog("Residence of Monsieur Phileas Fogg."),
+            InkToken::Dialog(("LONDON, 1872", true)),
+            InkToken::Dialog(("Residence of Monsieur Phileas Fogg.", true)),
             InkToken::Divert("paris_downtown"),
             InkToken::KnotTitle("paris_downtown"),
             InkToken::Tag("downtown tag"),
-            InkToken::Dialog("It was cool downtown."),
+            InkToken::Dialog(("It was cool downtown.", true)),
             InkToken::Divert("END"),
         ]),
         InkStory {
@@ -99,6 +102,7 @@ fn full_test() {
                         title: "paris_downtown".to_string(),
                         lines: vec![Line::Dialog(DialogLine {
                             text: "It was cool downtown.",
+                            has_newline: true,
                             tags: vec!["downtown tag"]
                         })],
                         knot_tags: vec!["downtown tag"],
@@ -111,7 +115,10 @@ fn full_test() {
     );
 
     assert_eq!(
-        lexed_to_parsed(&vec![InkToken::Choice("go"), InkToken::Divert("END")]),
+        lexed_to_parsed(&vec![
+            InkToken::Choice(("go", true)),
+            InkToken::Divert("END")
+        ]),
         InkStory {
             global_variables_and_constants: Default::default(),
             knots: BTreeMap::from([(
@@ -143,9 +150,9 @@ fn full_test() {
 fn parse_choices() {
     assert_eq!(
         lexed_to_parsed(&vec![
-            ink_lexer::InkToken::Choice("go"),
+            ink_lexer::InkToken::Choice(("go", true)),
             InkToken::Divert("END"),
-            ink_lexer::InkToken::Choice("stay"),
+            ink_lexer::InkToken::Choice(("stay", true)),
             InkToken::Divert("END")
         ]),
         InkStory {
@@ -209,6 +216,7 @@ fn parse_london() {
                                 choice_text: "🙂".to_string(),
                                 shown_text: "🙂".to_string(),
                                 divert: "nod".into(),
+                                has_newline: false,
                                 ..Default::default()
                             },
                         ]),
@@ -259,6 +267,7 @@ fn parse_london2() {
                             Choice {
                                 choice_text: "happy".to_string(),
                                 shown_text: "happy".to_string(),
+                                has_newline: false,
                                 divert: "END".into(),
                                 ..Default::default()
                             },
@@ -300,6 +309,7 @@ fn parse_image_tag() {
                     Knot {
                         lines: vec![Line::Dialog(DialogLine {
                             text: "Location: The great castle of ooooooom",
+                            has_newline: true,
                             tags: vec!["img:castle_lowres.jpg"]
                         }),],
                         end: KnotEnd::Divert("space".into()),
@@ -313,6 +323,7 @@ fn parse_image_tag() {
                         title: "space".to_string(),
                         lines: vec![Line::Dialog(DialogLine {
                             text: "outer space is great",
+                            has_newline: true,
                             tags: vec!["img:space.jpg"]
                         }),],
                         end: KnotEnd::Divert("END".into()),
@@ -339,6 +350,7 @@ fn parse_global_tags() {
                 Knot {
                     lines: vec![Line::Dialog(DialogLine {
                         text: "The story begins...",
+                        has_newline: true,
                         tags: vec!["author: Cool Coolman", "title: The Gracious Wizard"]
                     })],
                     knot_tags: vec!["author: Cool Coolman", "title: The Gracious Wizard"],
@@ -369,12 +381,14 @@ fn parse_sticky_options() {
                             Choice {
                                 choice_text: "no".to_string(),
                                 shown_text: "no".to_string(),
+                                has_newline: false,
                                 ..Default::default()
                             },
                             Choice {
                                 choice_text: "yes".to_string(),
                                 shown_text: "yes".to_string(),
                                 divert: "bears".into(),
+                                has_newline: false,
                                 sticky: true,
                                 ..Default::default()
                             }
@@ -390,6 +404,7 @@ fn parse_sticky_options() {
                         end: KnotEnd::Choices(vec![Choice {
                             choice_text: "yeah".to_string(),
                             shown_text: "yeah".to_string(),
+                            has_newline: false,
                             sticky: true,
                             ..Default::default()
                         }]),
@@ -416,7 +431,11 @@ fn parse_fallbacks() {
                 (
                     "__INTRO__".to_string(),
                     Knot {
-                        lines: vec!["hey".into()],
+                        lines: vec![Line::Dialog(DialogLine {
+                            text: "hey",
+                            has_newline: false,
+                            tags: vec![]
+                        })],
                         end: KnotEnd::Divert("fallback".into()),
                         ..Default::default()
                     }
@@ -430,12 +449,14 @@ fn parse_fallbacks() {
                             Choice {
                                 choice_text: "wut".to_string(),
                                 shown_text: "wut".to_string(),
+                                has_newline: false,
                                 divert: "fallback".into(),
                                 ..Default::default()
                             },
                             Choice {
                                 choice_text: "wutwut".to_string(),
                                 shown_text: "wutwut".to_string(),
+                                has_newline: true,
                                 lines: vec!["text".into()],
                                 divert: "fallback".into(),
                                 ..Default::default()
@@ -443,6 +464,7 @@ fn parse_fallbacks() {
                             Choice {
                                 lines: vec!["can I put things here?".into()],
                                 divert: "fallback2".into(),
+                                has_newline: true,
                                 sticky: true,
                                 ..Default::default()
                             }
@@ -459,11 +481,13 @@ fn parse_fallbacks() {
                             Choice {
                                 choice_text: "wut2".to_string(),
                                 shown_text: "wut2".to_string(),
+                                has_newline: false,
                                 divert: "fallback2".into(),
                                 ..Default::default()
                             },
                             Choice {
                                 divert: "END".into(),
+                                has_newline: false,
                                 sticky: true,
                                 ..Default::default()
                             }
@@ -680,6 +704,7 @@ fn parse_top_level_tag() {
                 Knot {
                     lines: vec![Line::Dialog(DialogLine {
                         text: "started",
+                        has_newline: true,
                         tags: vec!["tag_is_here"]
                     })],
                     knot_tags: vec!["tag_is_here"],
@@ -792,6 +817,7 @@ fn parse_choices_with_conditionals() {
                                 conditionals: vec![Expression::Not(Box::new("zoo".into()))],
                                 choice_text: "to the zoo!".to_string(),
                                 shown_text: "to the zoo!".to_string(),
+                                has_newline: false,
                                 lines: vec![],
                                 divert: "zoo".into(),
                                 sticky: true
@@ -800,6 +826,7 @@ fn parse_choices_with_conditionals() {
                                 conditionals: vec!["zoo".into()],
                                 choice_text: "complain about the zoo".to_string(),
                                 shown_text: "complain about the zoo".to_string(),
+                                has_newline: false,
                                 lines: vec![],
                                 divert: Default::default(),
                                 sticky: true
@@ -820,5 +847,79 @@ fn parse_choices_with_conditionals() {
             ]),
             global_tags: vec!["hidden"]
         }
+    );
+}
+
+#[test]
+fn parse_const() {
+    let string = strip_comments(include_str!("../samples/const.ink"));
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed,
+        InkStory {
+            global_variables_and_constants: BTreeMap::from([("GRAVITY", Float(9.81))]),
+            knots: BTreeMap::from([(
+                "__INTRO__".to_string(),
+                Knot {
+                    title: "__INTRO__".to_string(),
+                    lines: vec![
+                        Line::Dialog(DialogLine {
+                            text: "Gravity is an acceleration of ",
+                            has_newline: false,
+                            tags: vec![],
+                        }),
+                        Line::Expression("GRAVITY".into()),
+                        " m/s^2.".into(),
+                    ],
+                    ..Default::default()
+                }
+            ),]),
+            global_tags: vec![]
+        }
+    );
+}
+
+#[test]
+fn test_newlines() {
+    let string = strip_comments(include_str!("../samples/hidden_choice_text.ink"));
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed.knots,
+        BTreeMap::from([(
+            "__INTRO__".to_string(),
+            Knot {
+                title: "__INTRO__".to_string(),
+                lines: vec![Dialog(DialogLine {
+                    text: "what to do?",
+                    has_newline: true,
+                    tags: vec!["hidden"]
+                })],
+                end: Choices(vec![
+                    Choice {
+                        choice_text: "😊".to_string(),
+                        shown_text: "You smile, a grin as big as the sun.".to_string(),
+                        has_newline: true,
+                        ..Default::default()
+                    },
+                    Choice {
+                        choice_text: "😀 - time to smile".to_string(),
+                        shown_text: "😀 - you fight the need to frown, eyes watering.".to_string(),
+                        has_newline: true,
+                        ..Default::default()
+                    },
+                    Choice {
+                        choice_text: "😎 - be cool".to_string(),
+                        shown_text: "You are being very cool.".to_string(),
+                        has_newline: false,
+                        ..Default::default()
+                    }
+                ]),
+                knot_tags: vec!["hidden"]
+            }
+        ),]),
     );
 }

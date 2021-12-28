@@ -1,10 +1,15 @@
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InkToken<'a> {
-    Dialog(&'a str),
+    /// string, and true if it has a newline after it (ie. it doesn't have a divert on the same line)
+    Dialog((&'a str, bool)),
     KnotTitle(&'a str),
     StitchTitle(&'a str),
-    Choice(&'a str),
-    StickyChoice(&'a str),
+
+    /// string, and true if it has a newline after it (ie. it doesn't have a divert on the same line)
+    Choice((&'a str, bool)),
+
+    /// string, and true if it has a newline after it (ie. it doesn't have a divert on the same line)
+    StickyChoice((&'a str, bool)),
     Divert(&'a str),
     VariableDeclaration(&'a str),
     Operation(&'a str),
@@ -90,6 +95,8 @@ pub fn lex(text: &str) -> Vec<InkToken<'_>> {
                 )
             } else if let Some(stripped) = line.strip_prefix("VAR ") {
                 Some(vec![VariableDeclaration(stripped.trim_start())])
+            } else if let Some(stripped) = line.strip_prefix("CONST ") {
+                Some(vec![VariableDeclaration(stripped.trim_start())])
             } else if let Some(stripped) = line.strip_prefix('~') {
                 Some(vec![Operation(stripped.trim_start())])
             } else {
@@ -111,7 +118,7 @@ pub fn lex(text: &str) -> Vec<InkToken<'_>> {
                 }
 
                 let mut result = tags;
-                result.push(Dialog(line.trim()));
+                result.push(Dialog((line.trim(), divert.is_none())));
                 if let Some(divert) = divert {
                     result.push(Divert(divert));
                 }
@@ -139,16 +146,19 @@ fn lex_choice(line: &str, sticky: bool) -> Option<Vec<InkToken<'_>>> {
     }
 
     if let Some(index) = line.find("->") {
-        divert = Some(line[index + 2..].trim());
+        let divert_text = line[index + 2..].trim();
+        if !divert_text.is_empty() {
+            divert = Some(divert_text);
+        }
         line = line[0..index].trim();
     }
 
     let choice_text = line[1..].trim();
 
     let mut result = vec![if sticky || choice_text.is_empty() {
-        StickyChoice(choice_text)
+        StickyChoice((choice_text, divert.is_none()))
     } else {
-        Choice(choice_text)
+        Choice((choice_text, divert.is_none()))
     }];
 
     result.append(&mut tags);
