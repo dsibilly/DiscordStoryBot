@@ -232,12 +232,16 @@ impl<'a> EventHandler for Handler<'a> {
             // TODO: will this _not_ send pictures?
             let text = self.game.lock().unwrap().lines_as_text();
             let channel = msg.channel_id;
-            let final_message = channel
-                .say(&ctx.http, text + &"\nEND.".to_string())
-                .await
-                .expect("Could not send next initial text");
+            let images: Vec<String> = self.game.lock().unwrap().images();
+            let images: Vec<&str> = images.iter().map(|s| s.as_str()).collect();
 
-            //dbg!(final_message.unpin(&ctx).await); // TODO: is the final message ever pinned?
+            let _final_message = channel
+                .send_files(&ctx, images, |m| {
+                    m.content(text.clone() + &"\nEND.".to_string())
+                })
+                .await
+                .expect(&format!("Could not final message {}", &text));
+
             self.game.lock().unwrap().active = false;
 
             dbg!("STORY IS OVER NOW");
