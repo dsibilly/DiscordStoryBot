@@ -228,3 +228,19 @@ fn test_lex_choices_with_hidden_choice_text() {
         ]
     );
 }
+
+#[test]
+fn test_glue() {
+    assert_eq!(
+        lex(&strip_comments(include_str!("../samples/glue.ink"))),
+        vec![
+            Dialog("What do you want to say?"),
+            Choice("[\"Hey\"] \"Sup, my dude?\""),
+            Dialog("He stared at me in disbelief."),
+            Divert("END"),
+            Choice("\"Why[?\"] not!\""),
+            Dialog("So we left, right there."),
+            Divert("END"),
+        ]
+    );
+}
