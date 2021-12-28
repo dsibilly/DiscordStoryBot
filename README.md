@@ -1,5 +1,6 @@
 # Discord Story Bot
 
+![screenshot](screenshot.png)
 
 Goals:
 
