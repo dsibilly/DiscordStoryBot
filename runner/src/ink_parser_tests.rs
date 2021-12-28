@@ -2,6 +2,8 @@
 
 use crate::ink_lexer;
 use crate::ink_lexer::{lex, strip_comments, InkToken};
+use crate::ink_parser::KnotEnd::Choices;
+use crate::ink_parser::Line::Dialog;
 use crate::ink_parser::VariableValue::Float;
 use crate::ink_parser::{
     get_author_from_tag, get_title_from_tag, lexed_to_parsed, Choice, DialogLine, Expression,
@@ -847,30 +849,77 @@ fn parse_choices_with_conditionals() {
         }
     );
 }
-//
-//#[test]
-//fn parse_const() {
-//    let string = strip_comments(include_str!("../samples/const.ink"));
-//    let lexed = lex(&string);
-//    dbg!(&lexed);
-//    let parsed = lexed_to_parsed(&lexed);
-//    assert_eq!(
-//        parsed,
-//        InkStory {
-//            global_variables_and_constants: BTreeMap::from([("GRAVITY", Float(9.81))]),
-//            knots: BTreeMap::from([(
-//                "__INTRO__".to_string(),
-//                Knot {
-//                    title: "__INTRO__".to_string(),
-//                    lines: vec![
-//                        "Gravity is an acceleration of ".into(),
-//                        Line::Expression("GRAVITY".into()),
-//                        " m/s^2.\n".into(),
-//                    ],
-//                    ..Default::default()
-//                }
-//            ),]),
-//            global_tags: vec![]
-//        }
-//    );
-//}
+
+#[test]
+fn parse_const() {
+    let string = strip_comments(include_str!("../samples/const.ink"));
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed,
+        InkStory {
+            global_variables_and_constants: BTreeMap::from([("GRAVITY", Float(9.81))]),
+            knots: BTreeMap::from([(
+                "__INTRO__".to_string(),
+                Knot {
+                    title: "__INTRO__".to_string(),
+                    lines: vec![
+                        Line::Dialog(DialogLine {
+                            text: "Gravity is an acceleration of ",
+                            has_newline: false,
+                            tags: vec![],
+                        }),
+                        Line::Expression("GRAVITY".into()),
+                        " m/s^2.".into(),
+                    ],
+                    ..Default::default()
+                }
+            ),]),
+            global_tags: vec![]
+        }
+    );
+}
+
+#[test]
+fn test_newlines() {
+    let string = strip_comments(include_str!("../samples/hidden_choice_text.ink"));
+    let lexed = lex(&string);
+    dbg!(&lexed);
+    let parsed = lexed_to_parsed(&lexed);
+    assert_eq!(
+        parsed.knots,
+        BTreeMap::from([(
+            "__INTRO__".to_string(),
+            Knot {
+                title: "__INTRO__".to_string(),
+                lines: vec![Dialog(DialogLine {
+                    text: "what to do?",
+                    has_newline: true,
+                    tags: vec!["hidden"]
+                })],
+                end: Choices(vec![
+                    Choice {
+                        choice_text: "😊".to_string(),
+                        shown_text: "You smile, a grin as big as the sun.".to_string(),
+                        has_newline: true,
+                        ..Default::default()
+                    },
+                    Choice {
+                        choice_text: "😀 - time to smile".to_string(),
+                        shown_text: "😀 - you fight the need to frown, eyes watering.".to_string(),
+                        has_newline: true,
+                        ..Default::default()
+                    },
+                    Choice {
+                        choice_text: "😎 - be cool".to_string(),
+                        shown_text: "You are being very cool.".to_string(),
+                        has_newline: false,
+                        ..Default::default()
+                    }
+                ]),
+                knot_tags: vec!["hidden"]
+            }
+        ),]),
+    );
+}

@@ -152,7 +152,11 @@ fn run_story1() {
     assert_eq!(
         stepped,
         vec![
-            "🙂".into(),
+            OutputLine {
+                text: "🙂".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
             "I nodded curtly, not believing a word of it.".into(),
             "It's the ending!".into()
         ]
@@ -174,22 +178,27 @@ fn run_bot_story() {
             "Residence of Monsieur Phileas Fogg.".into(),
             OutputLine {
                 text: "It was cool downtown.".into(),
+                has_newline: true,
                 tags: vec!["downtown tag".into(), "tag ya".into()],
             },
             OutputLine {
                 text: "Suburbs were cool too.".into(),
+                has_newline: true,
                 tags: vec!["suburbs tag".into(), "tag too".into()],
             },
             OutputLine {
                 text: "Monsieur Phileas Fogg returned home early from the Reform Club, and in a new-fangled steam-carriage, besides!".into(),
+                has_newline: true,
                 tags: vec!["health +1".into(), "tag1".into(), "tag2".into()],
             },
             OutputLine {
                 text: "health: \"{health}\"".into(),
+                has_newline: true,
                 tags: vec![]
             },
             OutputLine {
                 text: "\"Passepartout,\" said he. \"We are going around the world!\"".into(),
+                has_newline: true,
                 tags: vec!["tag 4".into(), "tag 3".into()],
             },
         ]
@@ -215,7 +224,11 @@ fn run_bot_story() {
     assert_eq!(
         stepped,
         vec![
-            "🙂".into(),
+            OutputLine {
+                text: "🙂".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
             "I nodded curtly, not believing a word of it.".into(),
             "\"We shall circumnavigate the globe within eighty days.\" He was quite calm as he proposed this wild scheme. \"We leave for Paris on the 8:25. In an hour.\"".into()
         ]
@@ -231,7 +244,17 @@ fn run_recursive() {
     //dbg!(&runner.story);
 
     let start_lines = runner.start();
-    assert_eq!(start_lines, vec!["start".into(), "At place A.".into()]);
+    assert_eq!(
+        start_lines,
+        vec![
+            OutputLine {
+                text: "start".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            "At place A.".into()
+        ]
+    );
 
     let options = runner.get_options();
     assert_eq!(
@@ -284,12 +307,32 @@ fn run_fallbacks() {
     dbg!(&runner.story);
 
     let start_lines = runner.start();
-    assert_eq!(start_lines, vec!["hey".into(), "sup".into()]);
+    assert_eq!(
+        start_lines,
+        vec![
+            OutputLine {
+                text: "hey".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            "sup".into()
+        ]
+    );
 
     let options = runner.get_options();
     assert_eq!(options, vec!["wut", "wutwut"]);
 
-    assert_eq!(runner.step("wut"), vec!["wut".into(), "sup".into()]);
+    assert_eq!(
+        runner.step("wut"),
+        vec![
+            OutputLine {
+                text: "wut".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            "sup".into()
+        ]
+    );
     assert_eq!(runner.get_options(), vec!["wutwut"]);
 
     assert_eq!(
@@ -304,7 +347,17 @@ fn run_fallbacks() {
     );
     assert_eq!(runner.get_options(), vec!["wut2"]);
 
-    assert_eq!(runner.step("wut2"), vec!["wut2".into(), "sup2".into(),]);
+    assert_eq!(
+        runner.step("wut2"),
+        vec![
+            OutputLine {
+                text: "wut2".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            "sup2".into(),
+        ]
+    );
     let empty: Vec<String> = vec![];
     assert_eq!(runner.get_options(), empty);
 }
@@ -336,11 +389,27 @@ fn run_stitches_advanced() {
         start_lines,
         vec![
             "Train time!".into(),
-            "first class".into(),
-            "bus time".into(),
+            OutputLine {
+                text: "first class".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            OutputLine {
+                text: "bus time".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
             "train was better".into(),
-            "second class".into(),
-            "you missed the train".into(),
+            OutputLine {
+                text: "second class".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            OutputLine {
+                text: "you missed the train".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
         ]
     );
 
@@ -426,17 +495,17 @@ fn test_evaluate_expression() {
     );
 
     assert_eq!(
-        runner.evaluate_expression(&Expression::KnotVisited("space".to_string())),
+        runner.evaluate_expression(&Expression::Identifier("space".to_string())),
         VariableValue::Address("space".to_string())
     );
     assert_eq!(
-        runner.evaluate_expression(&Expression::Not(Box::new(Expression::KnotVisited(
+        runner.evaluate_expression(&Expression::Not(Box::new(Expression::Identifier(
             "zoo".to_string()
         )))),
         VariableValue::Int(1)
     );
     assert_eq!(
-        runner.evaluate_expression(&Expression::Not(Box::new(Expression::KnotVisited(
+        runner.evaluate_expression(&Expression::Not(Box::new(Expression::Identifier(
             "space".to_string()
         )))),
         VariableValue::Int(0)
@@ -450,5 +519,57 @@ fn test_evaluate_expression() {
             "did not see zoo".to_string(),
             "saw space".to_string()
         ]
+    );
+}
+
+#[test]
+fn test_const() {
+    let story = include_str!("../samples/const.ink");
+    let mut runner = StoryRunner::build_from_str(story);
+    let lines = runner.start();
+    assert_eq!(
+        lines,
+        vec![
+            OutputLine {
+                text: "Gravity is an acceleration of ".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            OutputLine {
+                text: "9.81".to_string(),
+                has_newline: false,
+                tags: vec![]
+            },
+            OutputLine {
+                text: " m/s^2.".to_string(),
+                has_newline: true,
+                tags: vec![]
+            }
+        ]
+    );
+}
+
+#[test]
+fn test_hidden_choice_text() {
+    let story = include_str!("../samples/hidden_choice_text.ink");
+    let mut runner = StoryRunner::build_from_str(story);
+    let lines = runner.start();
+    assert_eq!(
+        lines,
+        vec![OutputLine {
+            text: "what to do?".to_string(),
+            has_newline: true,
+            tags: vec!["hidden".to_string()]
+        },]
+    );
+
+    let lines = runner.step("😎 - be cool");
+    assert_eq!(
+        lines,
+        vec![OutputLine {
+            text: "You are being very cool.".to_string(),
+            has_newline: false,
+            tags: vec![]
+        },]
     );
 }

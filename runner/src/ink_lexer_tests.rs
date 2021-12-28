@@ -264,3 +264,25 @@ fn test_newlines() {
         ]
     );
 }
+
+#[test]
+fn test_lex_newlines() {
+    assert_eq!(
+        lex(&strip_comments(include_str!(
+            "../samples/hidden_choice_text.ink"
+        ))),
+        vec![
+            Tag("hidden"),
+            Dialog(("what to do?", true)),
+            Choice(("[😊] You smile, a grin as big as the sun.", true)),
+            Divert("END"),
+            Choice((
+                "😀 [- time to smile]- you fight the need to frown, eyes watering.",
+                true
+            )),
+            Divert("END"),
+            Choice(("[😎 - be cool] You are being very cool.", false)),
+            Divert("END"),
+        ]
+    );
+}
