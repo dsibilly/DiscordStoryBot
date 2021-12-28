@@ -1,4 +1,4 @@
-# DiscordBot
+# Discord Story Bot
 
 
 Goals:
@@ -11,7 +11,7 @@ v0.2
 - [x] play only one game at a time, and have a stop command
 - [x] timer tools
   - [x] support time scales that are larger than one minute (time formatting)
-  - [x] and tick the timer appropriately depending on time scale.
+  - [x] and tick the timer appropriately depending on time-scale.
   - [x] and have a way to set these when playing a story
 - [x] stories as their own directories, automatically imported
 - [x] hide test stories, or make them their own category
@@ -42,7 +42,7 @@ You'll be writing a `.ink` file using the ink language. See [their documentation
 
 Not every feature of ink is supported by the bot. See the current [support status here](runner/README.md).
 
-Your choices need to start with a [discord-supported emoji](https://emojipedia.org/twitter/twemoji-12.1.4/) ([more information](https://emojipedia.org/discord/)). See the [stories directory](stories) for example.
+Your choices need to start with a [discord-supported emoji](https://emojipedia.org/twitter/twemoji-12.1.4/) ([more information](https://emojipedia.org/discord/)). See the [stories directory](stories) for examples.
 
 You can add images using the `#img:image.jpg` tag. See [the images example](stories/images/images.ink).
 
