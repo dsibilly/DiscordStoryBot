@@ -19,6 +19,7 @@ v0.2
 
 v1.0
 
+- [ ] put the title and author as bold in the initial message
 - [ ] grab the story title from the tag (if there is one)
   - display this in the `!play` list, but still use the filename as they key
 - [ ] emoji validation
@@ -48,6 +49,14 @@ Your choices need to start with a [discord-supported emoji](https://emojipedia.o
 You can add images using the `#img:image.jpg` tag. See [the images example](stories/images/images.ink).
 
 Put your images and .ink files in a directory together, like in the examples in the [stories directory](stories), and the bot will automatically find them when you deploy it (see below).
+
+
+## Tips
+
+- You can set permissions in the channel that your bot is in so that **people cannot add emoji reactions** unless your bot does first.
+- You **set stories as hidden** so they don't show up in the `!play` list using the `# hidden` tag at the top of the file.
+- You can either make your emoji reactions **more explicit** by adding text to them, like in [story1](stories/story1/story1.ink), or you can make them **more mysterious** by removing the prompt altogether with the `# hide_choices` tag at the top of the file, like in [the_cave](stories/the_cave/the_cave.ink).
+- Put the **author and title** at the top of your stories, so you get credit for them: `# author: Your Name`, `# title: Story Title`.
 
 
 ## Deployment
