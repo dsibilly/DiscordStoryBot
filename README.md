@@ -19,7 +19,7 @@ v0.2
 
 v1.0
 
-- [ ] put the title and author as bold in the initial message
+- [x] put the title and author as bold in the initial message
 - [ ] grab the story title from the tag (if there is one)
   - display this in the `!play` list, but still use the filename as they key
 - [ ] emoji validation
