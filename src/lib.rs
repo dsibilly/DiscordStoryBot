@@ -140,6 +140,10 @@ impl<'a> Game<'a> {
     pub fn get_author(&self) -> Option<String> {
         self.runner.story.get_author()
     }
+
+    pub fn get_title(&self) -> Option<String> {
+        self.runner.story.get_title()
+    }
 }
 
 pub fn get_img_tag_image(tag: &str) -> Option<String> {

@@ -182,9 +182,17 @@ impl<'a> EventHandler for Handler<'a> {
 
             let mut most_recent_message = msg.clone();
 
+            let mut first = true;
             while !self.game.lock().unwrap().is_over() {
-                // Get list of choice options
-                let mut text = (self.game.lock().unwrap().lines_as_text()).clone();
+                let intro_text = if first {
+                    first = false;
+                    self.get_formatted_title_and_author()
+                } else {
+                    "".to_string()
+                };
+
+                let lines = (self.game.lock().unwrap().lines_as_text()).clone();
+                let mut text = intro_text + &lines;
                 let choices = self.game.lock().unwrap().choices_as_strings();
 
                 if !self.game.lock().unwrap().should_hide_choices() {
@@ -358,6 +366,24 @@ impl<'a> Handler<'a> {
             message,
         )
     }
+
+    fn get_formatted_title_and_author(&self) -> String {
+        let title = self.game.lock().unwrap().get_title();
+        let author = self.game.lock().unwrap().get_author();
+
+        if let Some(title) = title {
+            "__**".to_string()
+                + &title
+                + "**__"
+                + &if let Some(author) = author {
+                    " by _".to_string() + &author + "_\n\n"
+                } else {
+                    "\n\n".to_string()
+                }
+        } else {
+            "".to_string()
+        }
+    }
 }
 
 #[tokio::main]
@@ -367,10 +393,13 @@ async fn main() {
 
     let stories: Vec<(PathBuf, String)> = get_ink_files_with_paths();
 
-    let story_text = fs::read_to_string(
-        stories[0].0.to_string_lossy().to_string() + "/" + &stories[0].1 + ".ink",
-    )
-    .unwrap();
+    let story_0 = stories
+        .get(0)
+        .expect("We could not find any stories. Put some in the local ./stories directory.");
+
+    let story_text =
+        fs::read_to_string(story_0.0.to_string_lossy().to_string() + "/" + &story_0.1 + ".ink")
+            .unwrap();
 
     let token = fs::read_to_string(opt.token_file).unwrap();
 
