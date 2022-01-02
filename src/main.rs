@@ -392,7 +392,7 @@ impl<'a> Handler<'a> {
 
 #[tokio::main]
 async fn main() {
-    let opt: Opt = Opt::from_args();
+    let opt: Opt = Parser::parse();
     println!("{:#?}", opt);
 
     let stories: Vec<(PathBuf, String)> = get_ink_files_with_paths();
