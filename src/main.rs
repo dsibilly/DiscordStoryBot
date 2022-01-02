@@ -32,7 +32,7 @@ use serenity::model::channel::ReactionType;
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
 
-use structopt::StructOpt;
+use clap::Parser;
 
 use discord_story_bot::{story_has_hidden_tag, Game};
 
@@ -41,23 +41,27 @@ use ink_runner::ink_runner::import_story;
 use unicode_segmentation::UnicodeSegmentation;
 use walkdir::WalkDir;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "Discord Story Bot", about = "about: TODO")]
+#[derive(Debug, Parser)]
+#[clap(
+    name = "Discord Story Bot",
+    about = "Run .ink files as interactable discord stories.",
+    version
+)]
 struct Opt {
     /// client token file path
-    #[structopt(parse(from_os_str))]
+    #[clap(parse(from_os_str))]
     token_file: PathBuf,
 
     /// Optional saved state file to load.
-    #[structopt(short, long, parse(from_os_str))]
+    #[clap(short, long, parse(from_os_str))]
     state: Option<PathBuf>, // TODO: use this
 
     /// Optional knot to start with (can be used with state, but not required). Default is the beginning.
-    #[structopt(short, long)]
+    #[clap(short, long)]
     knot: Option<String>,
 
     /// whether to pin the story messages
-    #[structopt(long)]
+    #[clap(long)]
     do_not_pin: bool, // TODO: make this a config option, like prefix. Default to pinning.
 }
 
