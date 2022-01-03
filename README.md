@@ -20,7 +20,7 @@ v0.2
 v1.0
 
 - [x] put the title and author as bold in the initial message
-- [ ] grab the story title from the tag (if there is one)
+- [x] grab the story title from the tag (if there is one)
   - display this in the `!play` list, but still use the filename as they key
 - [ ] emoji validation
 - [ ] verify that filenames don't have spaces in them, or other bad special characters
@@ -95,3 +95,12 @@ WantedBy=multi-user.target
 ```
 
 Then run `./deploy_to_raspberry_pi` (but modify it first so that it matches your raspberry pi's ip address, etc. Also, note that you may want to set up your router so your raspberry pi always has the same ip address.)
+
+
+## Running
+
+To see all the instructions you can give, run `!help` in a discord channel that has this bot running in it.
+
+Run `!play` to see a list of stories that are available, and instructions for how to run one.
+
+The key in that list is the filename of the story (without `.ink`), and it will show the title and author as well if those tags are available in your story.

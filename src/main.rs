@@ -133,15 +133,20 @@ impl<'a> EventHandler for Handler<'a> {
                 .iter()
                 .filter(|&s| !story_has_hidden_tag(&self.stories[&s.to_string()].1))
                 .map(|&s| {
-                    format!(
-                        "`{}`{}",
-                        s,
-                        self.stories[&s.to_string()]
-                            .1
-                            .get_author()
-                            .map(|a| format!(" by {}", a))
-                            .unwrap_or("".to_string())
-                    )
+                    let author = self.stories[&s.to_string()].1.get_author();
+                    let title = self.stories[&s.to_string()].1.get_title();
+
+                    let title_with_author = if let Some(title) = title {
+                        format_title_and_author(&title, author)
+                    } else {
+                        if let Some(author) = author {
+                            "by _".to_string() + &author + "_"
+                        } else {
+                            "".to_string()
+                        }
+                    };
+
+                    format!("`{}` -- {}", s, title_with_author)
                 })
                 .collect();
 
@@ -376,18 +381,22 @@ impl<'a> Handler<'a> {
         let author = self.game.lock().unwrap().get_author();
 
         if let Some(title) = title {
-            "__**".to_string()
-                + &title
-                + "**__"
-                + &if let Some(author) = author {
-                    " by _".to_string() + &author + "_\n\n"
-                } else {
-                    "\n\n".to_string()
-                }
+            format_title_and_author(&title, author) + "\n\n"
         } else {
             "".to_string()
         }
     }
+}
+
+fn format_title_and_author(title: &str, author: Option<String>) -> String {
+    "__**".to_string()
+        + title
+        + "**__"
+        + &if let Some(author) = author {
+            " by _".to_string() + &author + "_"
+        } else {
+            "".to_string()
+        }
 }
 
 #[tokio::main]
