@@ -32,7 +32,6 @@ Differences from the official implementation:
 - [x] conditional choices `{}`
   - [x] "test knot_name is true if any stitch inside that knot has been seen." (whenever you go to a stitch inside a knot, when you were not already in that knot)
 - [x] same-line diverts mean no newline after "Diverts are invisible"
-- [ ] glue `<>`
 - [x] global constants `CONST`
 - [ ] global variables `VAR` and assignment operations
 - [ ] logical operators AND `&&`, OR `||`, and NOT `not`
@@ -43,6 +42,7 @@ Differences from the official implementation:
 - [ ] numerical maths and logic `~ x = (x*x) - (y*y)`
 
 ## v0.3
+- [ ] glue `<>`
 - [ ] includes
 - [ ] alternatives: sequences `|`
 - [ ] alternatives: cycles `&`
