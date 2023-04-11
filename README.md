@@ -1,4 +1,5 @@
 # Discord Story Bot
+[![Continuous Integration](https://github.com/dsibilly/DiscordStoryBot/actions/workflows/rust.yml/badge.svg)](https://github.com/dsibilly/DiscordStoryBot/actions/workflows/rust.yml)
 
 ![screenshot](screenshot.png)
 
