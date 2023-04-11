@@ -138,12 +138,10 @@ impl<'a> EventHandler for Handler<'a> {
 
                     let title_with_author = if let Some(title) = title {
                         format_title_and_author(&title, author)
+                    } else if let Some(author) = author {
+                        "by _".to_string() + &author + "_"
                     } else {
-                        if let Some(author) = author {
-                            "by _".to_string() + &author + "_"
-                        } else {
-                            "".to_string()
-                        }
+                        "".to_string()
                     };
 
                     format!("`{}` -- {}", s, title_with_author)
@@ -236,7 +234,9 @@ impl<'a> EventHandler for Handler<'a> {
                     self.game.lock().unwrap().stopped = false;
                     self.game.lock().unwrap().active = false;
                     let channel = msg.channel_id;
-                    dbg!(most_recent_message.unpin(&ctx).await);
+                    if let Err(e) = most_recent_message.unpin(&ctx).await {
+                        println!("{:?}", e)
+                    }
                     channel
                         .say(&ctx.http, "The story has been stopped.".to_string())
                         .await
@@ -253,9 +253,7 @@ impl<'a> EventHandler for Handler<'a> {
             let images: Vec<&str> = images.iter().map(|s| s.as_str()).collect();
 
             let _final_message = channel
-                .send_files(&ctx, images, |m| {
-                    m.content(text.clone() + &"\nEND.".to_string())
-                })
+                .send_files(&ctx, images, |m| m.content(text.clone() + "\nEND."))
                 .await
                 .expect(&format!("Could not final message {}", &text));
 
@@ -263,9 +261,15 @@ impl<'a> EventHandler for Handler<'a> {
 
             dbg!("STORY IS OVER NOW");
         } else if msg.content == (prefix.to_string() + "continue") {
-            // TODO
+            /*
+            TODO
+            */
+            unimplemented!();
         } else if msg.content == (prefix.to_string() + "pause") {
-            // TODO
+            /*
+            TODO
+            */
+            unimplemented!();
         } else if msg.content == (prefix.to_string() + "stop") {
             dbg!("STORY IS STOPPING");
             self.game.lock().unwrap().stopped = true;
@@ -290,7 +294,7 @@ impl<'a> Handler<'a> {
         countdown: u32,
     ) -> (String, Message) {
         let channel = previous_message.channel_id;
-        let mut countdown = countdown as u32;
+        let mut countdown = countdown;
         let countdown_increment: u32 = 5;
 
         let images: Vec<&str> = images.iter().map(|s| s.as_str()).collect();
@@ -306,8 +310,12 @@ impl<'a> Handler<'a> {
             .expect(&format!("Could not send message {}", &text));
 
         if !self.game.lock().unwrap().do_not_pin() {
-            dbg!(previous_message.unpin(ctx).await); // TODO: docs, saying that Manage Messages is required
-            dbg!(message.pin(ctx).await); // TODO: docs, saying that Manage Messages is required
+            if let Err(e) = previous_message.unpin(ctx).await {
+                println!("{:?}", e)
+            } // TODO: docs, saying that Manage Messages is required
+            if let Err(e) = message.pin(ctx).await {
+                println!("{:?}", e)
+            } // TODO: docs, saying that Manage Messages is required
         }
 
         // React to self with options

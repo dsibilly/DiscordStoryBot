@@ -46,8 +46,7 @@ impl<'a> InkStory<'a> {
         let authors: Vec<String> = self
             .global_tags
             .iter()
-            .map(|&t| get_author_from_tag(t))
-            .flatten()
+            .filter_map(|&t| get_author_from_tag(t))
             .collect();
 
         dbg!(&authors);
@@ -65,8 +64,7 @@ impl<'a> InkStory<'a> {
         let titles: Vec<String> = self
             .global_tags
             .iter()
-            .map(|&t| get_title_from_tag(t))
-            .flatten()
+            .filter_map(|&t| get_title_from_tag(t))
             .collect();
 
         dbg!(&titles);

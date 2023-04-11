@@ -92,8 +92,7 @@ impl<'a> Game<'a> {
     pub fn images(&self) -> Vec<String> {
         self.lines_and_tags()
             .into_iter()
-            .map(|(_, tags)| tags)
-            .flatten()
+            .flat_map(|(_, tags)| tags)
             .filter_map(|s| get_img_tag_image(&s))
             .map(|s| self.story_path.to_string_lossy().to_string() + "/" + &s)
             .collect()
