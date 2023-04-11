@@ -18,7 +18,7 @@ ink_runner = { path = "runner", version = "0.1.0"}
 serenity = { version = "0.11.5", default-features = false, features = ["client", "gateway", "rustls_backend", "model"] }
 tokio = { version = "1.27.0", features = ["macros", "rt-multi-thread"] }
 unicode-segmentation = "1.10.1"
-clap = { version = "3.0.0", features = ["derive"] }
+clap = { version = "3.2.22", features = ["derive"] }
 walkdir = "2"
 
 [dev-dependencies]
