@@ -30,7 +30,7 @@ use serenity::client::Client;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
 use serenity::model::gateway::Ready;
-use serenity::prelude::{Context, EventHandler};
+use serenity::prelude::*;
 
 use clap::Parser;
 
@@ -441,7 +441,8 @@ async fn main() {
         )
     });
 
-    let mut client = Client::builder(token)
+    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
+    let mut client = Client::builder(token, intents)
         .event_handler(Handler {
             game: Mutex::new(game),
             prefix: Mutex::new("!".to_string()),
